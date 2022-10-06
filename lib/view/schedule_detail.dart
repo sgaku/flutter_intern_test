@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+final startTimeProvider = StateProvider<DateTime?>((ref) => null);
+final endTimeProvider = StateProvider<DateTime?>((ref) => null);
 
 class ScheduleDetail extends ConsumerStatefulWidget {
   const ScheduleDetail({super.key});
@@ -19,6 +23,8 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
 
   @override
   Widget build(BuildContext context) {
+    final startTimeValue = ref.watch(startTimeProvider);
+    final endTimeValue = ref.watch(endTimeProvider);
     return Focus(
       focusNode: myFocusNode,
       child: GestureDetector(
@@ -94,7 +100,26 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [Text("開始"), Text("2022-10-5 14:00")],
+                        children: [
+                          const Text("開始"),
+                          TextButton(
+                            child: const Text("button"),
+                            onPressed: () {
+                              final startTimeController =
+                                  ref.read(startTimeProvider.notifier);
+                              _showCupertinoPicker(
+                                SizedBox(height: 300,)
+                                // CupertinoDatePicker(
+                                //   initialDateTime: DateTime.now(),
+                                //   mode: CupertinoDatePickerMode.date,
+                                //   onDateTimeChanged: (dateTime) {
+                                //     startTimeController.state = dateTime;
+                                //   },
+                                // ),
+                              );
+                            },
+                          )
+                        ],
                       ),
                     ),
                   ),
@@ -109,7 +134,25 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [Text("終了"), Text("2022-10-5 20:00")],
+                        children: [
+                          const Text("終了"),
+                          TextButton(
+                            child: const Text("button"),
+                            onPressed: () {
+                              final endTimeController =
+                                  ref.read(endTimeProvider.notifier);
+                              _showCupertinoPicker(
+                                CupertinoDatePicker(
+                                  initialDateTime: DateTime.now(),
+                                  mode: CupertinoDatePickerMode.date,
+                                  onDateTimeChanged: (dateTime) {
+                                    endTimeController.state = dateTime;
+                                  },
+                                ),
+                              );
+                            },
+                          )
+                        ],
                       ),
                     ),
                   ),
@@ -151,6 +194,26 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showCupertinoPicker(Widget child) {
+    showCupertinoModalPopup(
+
+      context: context,
+      builder: (BuildContext context) => Container(
+        height: 300,
+        padding: const EdgeInsets.only(top: 6),
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        child: Column(
+          children: [
+            SizedBox(child: child),
+          ],
         ),
       ),
     );

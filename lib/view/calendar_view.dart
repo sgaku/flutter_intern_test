@@ -5,7 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 final showMonthProvider = StateProvider<DateTime?>((ref) => null);
-// final currentPageProvider = StateProvider((ref) => 0);
+final focusedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
+final selectedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
 
 class CalendarView extends ConsumerStatefulWidget {
   const CalendarView({super.key});
@@ -18,12 +19,10 @@ class CalendarViewState extends ConsumerState<CalendarView> {
   late final PageController pageController;
 
   ///focusedDayがある月のページ番号
-  // int focusedDayPage = 0;
 
   DateTime? selectedDay;
   DateTime now = DateTime.now();
   DateTime focusedDay = DateTime.now();
-  DateTime? titleDay;
 
   @override
   void initState() {
@@ -33,6 +32,8 @@ class CalendarViewState extends ConsumerState<CalendarView> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedDayValue = ref.watch(selectedDayProvider);
+    final focusedDayValue = ref.watch(focusedDayProvider);
     final showMonthValue = ref.watch(showMonthProvider);
     return Scaffold(
       appBar: AppBar(
@@ -61,7 +62,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    "${showMonthValue?.year ?? focusedDay.year}年${showMonthValue?.month ?? focusedDay.month}月",
+                    "${showMonthValue?.year ?? focusedDayValue.year}年${showMonthValue?.month ?? focusedDayValue.month}月",
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold),
                   ),
@@ -86,25 +87,24 @@ class CalendarViewState extends ConsumerState<CalendarView> {
               pageController = controller;
             },
             onPageChanged: (day) {
-              final showMonthController = ref.read(showMonthProvider.notifier);
-              showMonthController.state = day;
+              ref.read(focusedDayProvider.notifier).update((state) => day);
+              ref.read(showMonthProvider.notifier).update((state) => day);
             },
             startingDayOfWeek: StartingDayOfWeek.monday,
-            locale: 'ja_JP',
             headerVisible: false,
-            firstDay: DateTime.utc(2010, 10, 16),
-            lastDay: DateTime.utc(2030, 3, 14),
-            focusedDay: focusedDay,
+            firstDay: DateTime.utc(2018),
+            lastDay: DateTime.utc(2024),
+            focusedDay: focusedDayValue,
             onDaySelected: (DateTime selectDay, DateTime focusDay) {
-              setState(() {
-                selectedDay = selectDay;
-                // focusedDay = focusDay;
-              });
+              ref.read(focusedDayProvider.notifier).update((state) => focusDay);
+              ref
+                  .read(selectedDayProvider.notifier)
+                  .update((state) => selectDay);
               showDialog(
                   context: context, builder: (context) => const DetailDialog());
             },
             selectedDayPredicate: (DateTime date) {
-              return isSameDay(selectedDay, date);
+              return isSameDay(selectedDayValue, date);
             },
             calendarBuilders: CalendarBuilders(
               dowBuilder: (_, day) {
@@ -170,13 +170,14 @@ class CalendarViewState extends ConsumerState<CalendarView> {
 
   ///今表示されている日付と、datePickerで選択した日付を比べて、そこから何ページアニメーションする必要があるかをintで返す
   Future<int> _datePicker(BuildContext context) async {
+    final focusedDayValue = ref.watch(focusedDayProvider);
     final showMonthValue = ref.read(showMonthProvider);
 
     final DateTime? datePicked = await showDatePicker(
         context: context,
-        initialDate: focusedDay,
-        firstDate: DateTime(2003),
-        lastDate: DateTime(2023));
+        initialDate: focusedDayValue,
+        firstDate: DateTime(2018),
+        lastDate: DateTime(2024));
 
     if (datePicked == null) {
       return 0;
@@ -185,26 +186,26 @@ class CalendarViewState extends ConsumerState<CalendarView> {
     switch (showMonthValue) {
       case null:
         //年が同じで月が違う時
-        if (datePicked.year == focusedDay.year &&
-            datePicked.month != focusedDay.month) {
+        if (datePicked.year == focusedDayValue.year &&
+            datePicked.month != focusedDayValue.month) {
           var cur = datePicked.month.toInt();
-          var pre = focusedDay.month.toInt();
+          var pre = focusedDayValue.month.toInt();
           return cur - pre;
           //月が同じで年が違う時
-        } else if (datePicked.month == focusedDay.month &&
-            datePicked.year != focusedDay.year) {
+        } else if (datePicked.month == focusedDayValue.month &&
+            datePicked.year != focusedDayValue.year) {
           var cur = datePicked.year.toInt();
-          var pre = focusedDay.year.toInt();
+          var pre = focusedDayValue.year.toInt();
           return (cur - pre) * 12;
           //年と月両方違う時
-        } else if (datePicked.year != focusedDay.year &&
-            datePicked.month != focusedDay.month) {
+        } else if (datePicked.year != focusedDayValue.year &&
+            datePicked.month != focusedDayValue.month) {
           var curY = datePicked.year.toInt();
-          var preY = focusedDay.year.toInt();
+          var preY = focusedDayValue.year.toInt();
           var curM = datePicked.month.toInt();
-          var preM = focusedDay.month.toInt();
+          var preM = focusedDayValue.month.toInt();
           var disY = curY - preY;
-          return (curM - preM) * disY * 12;
+          return (curM - preM) + disY * 12;
         }
         break;
       default:
@@ -228,7 +229,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
           var curM = datePicked.month.toInt();
           var preM = showMonthValue.month.toInt();
           var disY = curY - preY;
-          return (curM - preM) * disY * 12;
+          return (curM - preM) + disY * 12;
         }
         break;
     }
