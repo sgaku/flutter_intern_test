@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 final startTimeProvider = StateProvider<DateTime?>((ref) => null);
 final endTimeProvider = StateProvider<DateTime?>((ref) => null);
+
 
 class ScheduleDetail extends ConsumerStatefulWidget {
   const ScheduleDetail({super.key});
@@ -14,9 +16,15 @@ class ScheduleDetail extends ConsumerStatefulWidget {
 
 class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
   late FocusNode myFocusNode;
+  var now = DateTime.now();
+  DateTime? startTime;
+  DateTime? endTime;
+  DateFormat dateAndTime = DateFormat('yyyy-MM-dd HH:mm');
 
   @override
   void initState() {
+    startTime = now;
+    endTime = now;
     myFocusNode = FocusNode();
     super.initState();
   }
@@ -25,6 +33,7 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
   Widget build(BuildContext context) {
     final startTimeValue = ref.watch(startTimeProvider);
     final endTimeValue = ref.watch(endTimeProvider);
+
     return Focus(
       focusNode: myFocusNode,
       child: GestureDetector(
@@ -97,25 +106,29 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                     height: 40,
                     color: Colors.white,
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(4.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text("開始"),
                           TextButton(
-                            child: const Text("button"),
+                            style: TextButton.styleFrom(
+                                foregroundColor: Colors.black),
+                            child:
+                                Text(dateAndTime.format(startTimeValue ?? now)),
                             onPressed: () {
-                              final startTimeController =
-                                  ref.read(startTimeProvider.notifier);
                               _showCupertinoPicker(
-                                SizedBox(height: 300,)
-                                // CupertinoDatePicker(
-                                //   initialDateTime: DateTime.now(),
-                                //   mode: CupertinoDatePickerMode.date,
-                                //   onDateTimeChanged: (dateTime) {
-                                //     startTimeController.state = dateTime;
-                                //   },
-                                // ),
+                                CupertinoDatePicker(
+                                  initialDateTime: DateTime.now(),
+                                  mode: CupertinoDatePickerMode.dateAndTime,
+                                  use24hFormat: true,
+                                  onDateTimeChanged: (dateTime) {
+                                    setState(() {
+                                      startTime = dateTime;
+                                    });
+                                    // startTimeController.state = dateTime;
+                                  },
+                                ),
                               );
                             },
                           )
@@ -131,22 +144,26 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                     height: 40,
                     color: Colors.white,
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(4.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text("終了"),
                           TextButton(
-                            child: const Text("button"),
+                            style: TextButton.styleFrom(
+                                foregroundColor: Colors.black),
+                            child:
+                                Text(dateAndTime.format(endTimeValue ?? now)),
                             onPressed: () {
-                              final endTimeController =
-                                  ref.read(endTimeProvider.notifier);
                               _showCupertinoPicker(
                                 CupertinoDatePicker(
                                   initialDateTime: DateTime.now(),
-                                  mode: CupertinoDatePickerMode.date,
+                                  mode: CupertinoDatePickerMode.dateAndTime,
+                                  use24hFormat: true,
                                   onDateTimeChanged: (dateTime) {
-                                    endTimeController.state = dateTime;
+                                    setState(() {
+                                      endTime = dateTime;
+                                    });
                                   },
                                 ),
                               );
@@ -201,7 +218,6 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
 
   void _showCupertinoPicker(Widget child) {
     showCupertinoModalPopup(
-
       context: context,
       builder: (BuildContext context) => Container(
         height: 300,
@@ -212,7 +228,32 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
         color: CupertinoColors.systemBackground.resolveFrom(context),
         child: Column(
           children: [
-            SizedBox(child: child),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text("キャンセル")),
+                  TextButton(
+                      onPressed: () {
+                        ref
+                            .read(startTimeProvider.notifier)
+                            .update((state) => startTime);
+                        ref
+                            .read(endTimeProvider.notifier)
+                            .update((state) => endTime);
+
+                        Navigator.pop(context);
+                      },
+                      child: const Text("完了")),
+                ],
+              ),
+            ),
+            Expanded(child: SafeArea(top: false, child: child)),
           ],
         ),
       ),
