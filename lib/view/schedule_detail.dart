@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 
 final startTimeProvider = StateProvider<DateTime?>((ref) => null);
 final endTimeProvider = StateProvider<DateTime?>((ref) => null);
-
+final switchProvider = StateProvider((ref) => false);
 
 class ScheduleDetail extends ConsumerStatefulWidget {
   const ScheduleDetail({super.key});
@@ -17,14 +17,13 @@ class ScheduleDetail extends ConsumerStatefulWidget {
 class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
   late FocusNode myFocusNode;
   var now = DateTime.now();
-  DateTime? startTime;
-  DateTime? endTime;
+  DateTime startTime = DateTime.now();
+  DateTime endTime = DateTime.now();
   DateFormat dateAndTime = DateFormat('yyyy-MM-dd HH:mm');
+  DateFormat date = DateFormat('yyyy-MM-dd ');
 
   @override
   void initState() {
-    startTime = now;
-    endTime = now;
     myFocusNode = FocusNode();
     super.initState();
   }
@@ -33,6 +32,7 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
   Widget build(BuildContext context) {
     final startTimeValue = ref.watch(startTimeProvider);
     final endTimeValue = ref.watch(endTimeProvider);
+    final switchValue = ref.watch(switchProvider);
 
     return Focus(
       focusNode: myFocusNode,
@@ -93,7 +93,13 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text("終日"),
-                          Switch(value: true, onChanged: (value) {})
+                          Switch(
+                              value: switchValue,
+                              onChanged: (value) {
+                                ref
+                                    .read(switchProvider.notifier)
+                                    .update((state) => value);
+                              })
                         ],
                       ),
                     ),
@@ -114,13 +120,16 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                           TextButton(
                             style: TextButton.styleFrom(
                                 foregroundColor: Colors.black),
-                            child:
-                                Text(dateAndTime.format(startTimeValue ?? now)),
+                            child: Text(switchValue
+                                ? date.format(startTimeValue ?? now)
+                                : dateAndTime.format(startTimeValue ?? now)),
                             onPressed: () {
                               _showCupertinoPicker(
                                 CupertinoDatePicker(
                                   initialDateTime: DateTime.now(),
-                                  mode: CupertinoDatePickerMode.dateAndTime,
+                                  mode: switchValue
+                                      ? CupertinoDatePickerMode.date
+                                      : CupertinoDatePickerMode.dateAndTime,
                                   use24hFormat: true,
                                   onDateTimeChanged: (dateTime) {
                                     setState(() {
@@ -152,13 +161,16 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                           TextButton(
                             style: TextButton.styleFrom(
                                 foregroundColor: Colors.black),
-                            child:
-                                Text(dateAndTime.format(endTimeValue ?? now)),
+                            child: Text(switchValue
+                                ? date.format(endTimeValue ?? now)
+                                : dateAndTime.format(endTimeValue ?? now)),
                             onPressed: () {
                               _showCupertinoPicker(
                                 CupertinoDatePicker(
                                   initialDateTime: DateTime.now(),
-                                  mode: CupertinoDatePickerMode.dateAndTime,
+                                  mode: switchValue
+                                      ? CupertinoDatePickerMode.date
+                                      : CupertinoDatePickerMode.dateAndTime,
                                   use24hFormat: true,
                                   onDateTimeChanged: (dateTime) {
                                     setState(() {
@@ -240,6 +252,16 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                       child: const Text("キャンセル")),
                   TextButton(
                       onPressed: () {
+                        final switchValue = ref.read(switchProvider);
+                        final isEndTimeBefore = endTime.isBefore(startTime);
+                        final isEqual = endTime.microsecondsSinceEpoch ==
+                            startTime.millisecondsSinceEpoch;
+
+                        if (isEndTimeBefore || isEqual && switchValue) {
+                          endTime = startTime.add(const Duration(days: 1));
+                        } else if (isEndTimeBefore || isEqual && !switchValue) {
+                          endTime = startTime.add(const Duration(hours: 1));
+                        }
                         ref
                             .read(startTimeProvider.notifier)
                             .update((state) => startTime);
