@@ -1,10 +1,13 @@
+import 'package:calendar_sample/service/event_db.dart';
 import 'package:calendar_sample/view/calendar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/date_symbol_data_local.dart';
+
+late MyDatabase dateBase;
 
 void main() {
+  dateBase = MyDatabase();
   runApp(const ProviderScope(child: MyApp()));
 }
 

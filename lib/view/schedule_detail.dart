@@ -1,11 +1,16 @@
+import 'package:calendar_sample/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:calendar_sample/service/event_db.dart';
 
-final startTimeProvider = StateProvider<DateTime?>((ref) => null);
-final endTimeProvider = StateProvider<DateTime?>((ref) => null);
+//provider
+final startTimeProvider = StateProvider<DateTime>((ref) => DateTime.now());
+final endTimeProvider = StateProvider<DateTime>((ref) => DateTime.now());
 final switchProvider = StateProvider((ref) => false);
+final titleProvider = StateProvider((ref) => "");
+final commentProvider = StateProvider((ref) => "");
 
 class ScheduleDetail extends ConsumerStatefulWidget {
   const ScheduleDetail({super.key});
@@ -16,7 +21,6 @@ class ScheduleDetail extends ConsumerStatefulWidget {
 
 class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
   late FocusNode myFocusNode;
-  var now = DateTime.now();
   DateTime startTime = DateTime.now();
   DateTime endTime = DateTime.now();
   DateFormat dateAndTime = DateFormat('yyyy-MM-dd HH:mm');
@@ -30,9 +34,12 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
 
   @override
   Widget build(BuildContext context) {
+    //provider.value
+    final titleValue = ref.watch(titleProvider);
+    final isAllDayValue = ref.watch(switchProvider);
     final startTimeValue = ref.watch(startTimeProvider);
     final endTimeValue = ref.watch(endTimeProvider);
-    final switchValue = ref.watch(switchProvider);
+    final commentValue = ref.watch(commentProvider);
 
     return Focus(
       focusNode: myFocusNode,
@@ -53,7 +60,18 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: //タイトルとコメントに何も入力されていなかったら（デフォルトで""が入っている）、押せないようにする
+                      titleValue.isEmpty || commentValue.isEmpty
+                          ? null
+                          : () async {
+                              //driftにデータを追加
+                              dateBase.addEvent(Event(
+                                  title: titleValue,
+                                  isAllDay: isAllDayValue,
+                                  startDateTime: startTimeValue,
+                                  endDateTime: endTimeValue,
+                                  comment: commentValue));
+                            },
                   style: ElevatedButton.styleFrom(
                     primary: Colors.white,
                     onPrimary: Colors.black,
@@ -67,11 +85,11 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
           body: Center(
             child: Column(
               children: [
-                const Padding(
-                  padding: EdgeInsets.all(12.0),
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
                   child: TextField(
                     autofocus: true,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.white)),
                       filled: true,
@@ -79,6 +97,9 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                       hintText: "タイトルを入力してください",
                       border: OutlineInputBorder(),
                     ),
+                    onChanged: (text) {
+                      ref.read(titleProvider.notifier).update((state) => text);
+                    },
                   ),
                 ),
                 Padding(
@@ -94,7 +115,7 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                         children: [
                           const Text("終日"),
                           Switch(
-                              value: switchValue,
+                              value: isAllDayValue,
                               onChanged: (value) {
                                 ref
                                     .read(switchProvider.notifier)
@@ -120,14 +141,14 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                           TextButton(
                             style: TextButton.styleFrom(
                                 foregroundColor: Colors.black),
-                            child: Text(switchValue
-                                ? date.format(startTimeValue ?? now)
-                                : dateAndTime.format(startTimeValue ?? now)),
+                            child: Text(isAllDayValue
+                                ? date.format(startTimeValue)
+                                : dateAndTime.format(startTimeValue)),
                             onPressed: () {
                               _showCupertinoPicker(
                                 CupertinoDatePicker(
                                   initialDateTime: DateTime.now(),
-                                  mode: switchValue
+                                  mode: isAllDayValue
                                       ? CupertinoDatePickerMode.date
                                       : CupertinoDatePickerMode.dateAndTime,
                                   use24hFormat: true,
@@ -161,14 +182,14 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                           TextButton(
                             style: TextButton.styleFrom(
                                 foregroundColor: Colors.black),
-                            child: Text(switchValue
-                                ? date.format(endTimeValue ?? now)
-                                : dateAndTime.format(endTimeValue ?? now)),
+                            child: Text(isAllDayValue
+                                ? date.format(endTimeValue)
+                                : dateAndTime.format(endTimeValue)),
                             onPressed: () {
                               _showCupertinoPicker(
                                 CupertinoDatePicker(
                                   initialDateTime: DateTime.now(),
-                                  mode: switchValue
+                                  mode: isAllDayValue
                                       ? CupertinoDatePickerMode.date
                                       : CupertinoDatePickerMode.dateAndTime,
                                   use24hFormat: true,
@@ -186,20 +207,23 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                     ),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.all(12.0),
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
                   child: TextField(
                     maxLines: null,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.white)),
-                      // focusedBorder: OutlineInputBorder(
-                      //     borderSide: BorderSide(color: Colors.white)),
                       filled: true,
                       fillColor: Colors.white,
                       hintText: "コメントを入力してください",
                       border: OutlineInputBorder(),
                     ),
+                    onChanged: (text) {
+                      ref
+                          .read(commentProvider.notifier)
+                          .update((state) => text);
+                    },
                   ),
                 ),
                 Padding(

@@ -1,3 +1,4 @@
+import 'package:calendar_sample/service/event_db.dart';
 import 'package:calendar_sample/view/schedule_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,8 @@ import 'package:table_calendar/table_calendar.dart';
 final showMonthProvider = StateProvider<DateTime?>((ref) => null);
 final focusedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
 final selectedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
+
+
 
 class CalendarView extends ConsumerStatefulWidget {
   const CalendarView({super.key});
@@ -23,6 +26,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
   DateTime? selectedDay;
   DateTime now = DateTime.now();
   DateTime focusedDay = DateTime.now();
+  Map<DateTime,List<Event>> selectedEvent = {};
 
   @override
   void initState() {
@@ -90,6 +94,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
               ref.read(focusedDayProvider.notifier).update((state) => day);
               ref.read(showMonthProvider.notifier).update((state) => day);
             },
+
             startingDayOfWeek: StartingDayOfWeek.monday,
             headerVisible: false,
             firstDay: DateTime.utc(2018),
