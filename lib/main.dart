@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-late MyDatabase dateBase;
+late MyDatabase dataBase;
 
 void main() {
-  dateBase = MyDatabase();
+  dataBase = MyDatabase();
   runApp(const ProviderScope(child: MyApp()));
 }
 

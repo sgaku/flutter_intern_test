@@ -1,3 +1,4 @@
+import 'package:calendar_sample/main.dart';
 import 'package:calendar_sample/service/event_db.dart';
 import 'package:calendar_sample/view/schedule_detail.dart';
 import 'package:flutter/material.dart';
@@ -5,11 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../model/fetch_db.dart';
+
 final showMonthProvider = StateProvider<DateTime?>((ref) => null);
 final focusedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
-final selectedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
-
-
+final selectedDayProvider = StateProvider<DateTime>((ref) => DateTime.utc(
+    DateTime.now().year, DateTime.now().month, DateTime.now().day));
+final fetchDataBaseProvider = ChangeNotifierProvider((ref) => FetchDateBase());
 
 class CalendarView extends ConsumerStatefulWidget {
   const CalendarView({super.key});
@@ -21,17 +24,14 @@ class CalendarView extends ConsumerStatefulWidget {
 class CalendarViewState extends ConsumerState<CalendarView> {
   late final PageController pageController;
 
-  ///focusedDayがある月のページ番号
-
-  DateTime? selectedDay;
-  DateTime now = DateTime.now();
-  DateTime focusedDay = DateTime.now();
-  Map<DateTime,List<Event>> selectedEvent = {};
-
   @override
   void initState() {
-    selectedDay = DateTime.utc(now.year, now.month, now.day);
     super.initState();
+  }
+
+  List<Event> _getEventsFromDay(DateTime date) {
+    final fetchDataBaseValue = ref.watch(fetchDataBaseProvider);
+    return fetchDataBaseValue.dataMap[date] ?? [];
   }
 
   @override
@@ -41,7 +41,22 @@ class CalendarViewState extends ConsumerState<CalendarView> {
     final showMonthValue = ref.watch(showMonthProvider);
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.check),
+          onPressed: () async {
+            final data = await dataBase.allEventsData;
+            print(data);
+          },
+        ),
         title: const Text("カレンダー"),
+        actions: [
+          IconButton(
+              onPressed: () async {
+                final data = await dataBase.allEventsData;
+                await dataBase.deleteEvent(data);
+              },
+              icon: const Icon(Icons.delete)),
+        ],
       ),
       body: Column(
         children: [
@@ -94,7 +109,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
               ref.read(focusedDayProvider.notifier).update((state) => day);
               ref.read(showMonthProvider.notifier).update((state) => day);
             },
-
+            eventLoader: _getEventsFromDay,
             startingDayOfWeek: StartingDayOfWeek.monday,
             headerVisible: false,
             firstDay: DateTime.utc(2018),

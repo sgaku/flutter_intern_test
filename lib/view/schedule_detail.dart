@@ -1,4 +1,5 @@
 import 'package:calendar_sample/main.dart';
+import 'package:calendar_sample/view/calendar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,8 +7,21 @@ import 'package:intl/intl.dart';
 import 'package:calendar_sample/service/event_db.dart';
 
 //provider
-final startTimeProvider = StateProvider<DateTime>((ref) => DateTime.now());
-final endTimeProvider = StateProvider<DateTime>((ref) => DateTime.now());
+final startTimeProvider = StateProvider<DateTime>((ref) {
+  final selectedValue = ref.watch(selectedDayProvider);
+  // return DateTime.now();
+  return DateTime.utc(selectedValue.year, selectedValue.month,
+      selectedValue.day, DateTime.now().hour, DateTime.now().minute);
+});
+
+final endTimeProvider = StateProvider<DateTime>((ref) {
+  final selectedValue = ref.watch(selectedDayProvider);
+  // return DateTime.now();
+  return DateTime.utc(selectedValue.year, selectedValue.month,
+      selectedValue.day, DateTime.now().hour, DateTime.now().minute);
+});
+
+
 final switchProvider = StateProvider((ref) => false);
 final titleProvider = StateProvider((ref) => "");
 final commentProvider = StateProvider((ref) => "");
@@ -35,11 +49,13 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
   @override
   Widget build(BuildContext context) {
     //provider.value
+    final selectedValue = ref.watch(selectedDayProvider);
     final titleValue = ref.watch(titleProvider);
     final isAllDayValue = ref.watch(switchProvider);
     final startTimeValue = ref.watch(startTimeProvider);
     final endTimeValue = ref.watch(endTimeProvider);
     final commentValue = ref.watch(commentProvider);
+    final fetchDataBaseValue = ref.watch(fetchDataBaseProvider);
 
     return Focus(
       focusNode: myFocusNode,
@@ -65,12 +81,16 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                           ? null
                           : () async {
                               //driftにデータを追加
-                              dateBase.addEvent(Event(
+                              await dataBase.addEvent(Event(
+                                  selectedDate: selectedValue,
                                   title: titleValue,
                                   isAllDay: isAllDayValue,
                                   startDateTime: startTimeValue,
                                   endDateTime: endTimeValue,
                                   comment: commentValue));
+                              //driftのデータを更新
+                              await fetchDataBaseValue.fetchDataList();
+                              Navigator.pop(context);
                             },
                   style: ElevatedButton.styleFrom(
                     primary: Colors.white,

@@ -8,13 +8,15 @@ part of 'event_db.dart';
 
 // ignore_for_file: type=lint
 class Event extends DataClass implements Insertable<Event> {
+  final DateTime selectedDate;
   final String title;
   final bool isAllDay;
   final DateTime startDateTime;
   final DateTime endDateTime;
   final String comment;
   const Event(
-      {required this.title,
+      {required this.selectedDate,
+      required this.title,
       required this.isAllDay,
       required this.startDateTime,
       required this.endDateTime,
@@ -22,6 +24,7 @@ class Event extends DataClass implements Insertable<Event> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['selected_date'] = Variable<DateTime>(selectedDate);
     map['title'] = Variable<String>(title);
     map['is_all_day'] = Variable<bool>(isAllDay);
     map['start_date_time'] = Variable<DateTime>(startDateTime);
@@ -32,6 +35,7 @@ class Event extends DataClass implements Insertable<Event> {
 
   EventsCompanion toCompanion(bool nullToAbsent) {
     return EventsCompanion(
+      selectedDate: Value(selectedDate),
       title: Value(title),
       isAllDay: Value(isAllDay),
       startDateTime: Value(startDateTime),
@@ -44,6 +48,7 @@ class Event extends DataClass implements Insertable<Event> {
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Event(
+      selectedDate: serializer.fromJson<DateTime>(json['selectedDate']),
       title: serializer.fromJson<String>(json['title']),
       isAllDay: serializer.fromJson<bool>(json['isAllDay']),
       startDateTime: serializer.fromJson<DateTime>(json['startDateTime']),
@@ -55,6 +60,7 @@ class Event extends DataClass implements Insertable<Event> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'selectedDate': serializer.toJson<DateTime>(selectedDate),
       'title': serializer.toJson<String>(title),
       'isAllDay': serializer.toJson<bool>(isAllDay),
       'startDateTime': serializer.toJson<DateTime>(startDateTime),
@@ -64,12 +70,14 @@ class Event extends DataClass implements Insertable<Event> {
   }
 
   Event copyWith(
-          {String? title,
+          {DateTime? selectedDate,
+          String? title,
           bool? isAllDay,
           DateTime? startDateTime,
           DateTime? endDateTime,
           String? comment}) =>
       Event(
+        selectedDate: selectedDate ?? this.selectedDate,
         title: title ?? this.title,
         isAllDay: isAllDay ?? this.isAllDay,
         startDateTime: startDateTime ?? this.startDateTime,
@@ -79,6 +87,7 @@ class Event extends DataClass implements Insertable<Event> {
   @override
   String toString() {
     return (StringBuffer('Event(')
+          ..write('selectedDate: $selectedDate, ')
           ..write('title: $title, ')
           ..write('isAllDay: $isAllDay, ')
           ..write('startDateTime: $startDateTime, ')
@@ -89,12 +98,13 @@ class Event extends DataClass implements Insertable<Event> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(title, isAllDay, startDateTime, endDateTime, comment);
+  int get hashCode => Object.hash(
+      selectedDate, title, isAllDay, startDateTime, endDateTime, comment);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Event &&
+          other.selectedDate == this.selectedDate &&
           other.title == this.title &&
           other.isAllDay == this.isAllDay &&
           other.startDateTime == this.startDateTime &&
@@ -103,12 +113,14 @@ class Event extends DataClass implements Insertable<Event> {
 }
 
 class EventsCompanion extends UpdateCompanion<Event> {
+  final Value<DateTime> selectedDate;
   final Value<String> title;
   final Value<bool> isAllDay;
   final Value<DateTime> startDateTime;
   final Value<DateTime> endDateTime;
   final Value<String> comment;
   const EventsCompanion({
+    this.selectedDate = const Value.absent(),
     this.title = const Value.absent(),
     this.isAllDay = const Value.absent(),
     this.startDateTime = const Value.absent(),
@@ -116,17 +128,20 @@ class EventsCompanion extends UpdateCompanion<Event> {
     this.comment = const Value.absent(),
   });
   EventsCompanion.insert({
+    required DateTime selectedDate,
     required String title,
     required bool isAllDay,
     required DateTime startDateTime,
     required DateTime endDateTime,
     required String comment,
-  })  : title = Value(title),
+  })  : selectedDate = Value(selectedDate),
+        title = Value(title),
         isAllDay = Value(isAllDay),
         startDateTime = Value(startDateTime),
         endDateTime = Value(endDateTime),
         comment = Value(comment);
   static Insertable<Event> custom({
+    Expression<DateTime>? selectedDate,
     Expression<String>? title,
     Expression<bool>? isAllDay,
     Expression<DateTime>? startDateTime,
@@ -134,6 +149,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
     Expression<String>? comment,
   }) {
     return RawValuesInsertable({
+      if (selectedDate != null) 'selected_date': selectedDate,
       if (title != null) 'title': title,
       if (isAllDay != null) 'is_all_day': isAllDay,
       if (startDateTime != null) 'start_date_time': startDateTime,
@@ -143,12 +159,14 @@ class EventsCompanion extends UpdateCompanion<Event> {
   }
 
   EventsCompanion copyWith(
-      {Value<String>? title,
+      {Value<DateTime>? selectedDate,
+      Value<String>? title,
       Value<bool>? isAllDay,
       Value<DateTime>? startDateTime,
       Value<DateTime>? endDateTime,
       Value<String>? comment}) {
     return EventsCompanion(
+      selectedDate: selectedDate ?? this.selectedDate,
       title: title ?? this.title,
       isAllDay: isAllDay ?? this.isAllDay,
       startDateTime: startDateTime ?? this.startDateTime,
@@ -160,6 +178,9 @@ class EventsCompanion extends UpdateCompanion<Event> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (selectedDate.present) {
+      map['selected_date'] = Variable<DateTime>(selectedDate.value);
+    }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
     }
@@ -181,6 +202,7 @@ class EventsCompanion extends UpdateCompanion<Event> {
   @override
   String toString() {
     return (StringBuffer('EventsCompanion(')
+          ..write('selectedDate: $selectedDate, ')
           ..write('title: $title, ')
           ..write('isAllDay: $isAllDay, ')
           ..write('startDateTime: $startDateTime, ')
@@ -196,6 +218,12 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $EventsTable(this.attachedDatabase, [this._alias]);
+  final VerificationMeta _selectedDateMeta =
+      const VerificationMeta('selectedDate');
+  @override
+  late final GeneratedColumn<DateTime> selectedDate = GeneratedColumn<DateTime>(
+      'selected_date', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
   final VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -227,7 +255,7 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
       type: DriftSqlType.string, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
-      [title, isAllDay, startDateTime, endDateTime, comment];
+      [selectedDate, title, isAllDay, startDateTime, endDateTime, comment];
   @override
   String get aliasedName => _alias ?? 'events';
   @override
@@ -237,6 +265,14 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('selected_date')) {
+      context.handle(
+          _selectedDateMeta,
+          selectedDate.isAcceptableOrUnknown(
+              data['selected_date']!, _selectedDateMeta));
+    } else if (isInserting) {
+      context.missing(_selectedDateMeta);
+    }
     if (data.containsKey('title')) {
       context.handle(
           _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
@@ -280,6 +316,8 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
   Event map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Event(
+      selectedDate: attachedDatabase.options.types.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}selected_date'])!,
       title: attachedDatabase.options.types
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       isAllDay: attachedDatabase.options.types

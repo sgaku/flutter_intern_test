@@ -7,6 +7,8 @@ import 'package:path/path.dart' as p;
 part 'event_db.g.dart';
 
 class Events extends Table {
+  DateTimeColumn get selectedDate => dateTime()();
+
   TextColumn get title => text()();
 
   BoolColumn get isAllDay => boolean()();
@@ -23,22 +25,46 @@ class MyDatabase extends _$MyDatabase {
   MyDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          // we added the dueDate property in the change from version 1 to
+          // version 2
+          await m.addColumn(events, events.selectedDate);
+        }
+      },
+    );
+  }
+  //データの読み込み
   Stream<List<Event>> watchEntries() {
     return (select(events)).watch();
   }
 
-  Future<List<Event>> get allTodoEntries => select(events).get();
+//データの読み込み
+  Future<List<Event>> get allEventsData => select(events).get();
 
+  //データの追加
   Future<int> addEvent(Event e) {
     return into(events).insert(EventsCompanion(
+      selectedDate: Value(e.selectedDate),
       title: Value(e.title),
       isAllDay: Value(e.isAllDay),
       startDateTime: Value(e.startDateTime),
       endDateTime: Value(e.endDateTime),
       comment: Value(e.comment),
     ));
+  }
+
+  //データの全削除
+  Future<void> deleteEvent(List<Event> e) {
+    return (delete(events).go());
   }
 }
 
