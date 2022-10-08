@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:drift/drift.dart';
+import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -7,6 +7,8 @@ import 'package:path/path.dart' as p;
 part 'event_db.g.dart';
 
 class Events extends Table {
+  TextColumn get id => text()();
+
   DateTimeColumn get selectedDate => dateTime()();
 
   TextColumn get title => text()();
@@ -25,34 +27,13 @@ class MyDatabase extends _$MyDatabase {
   MyDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 1;
 
-  @override
-  MigrationStrategy get migration {
-    return MigrationStrategy(
-      onCreate: (Migrator m) async {
-        await m.createAll();
-      },
-      onUpgrade: (Migrator m, int from, int to) async {
-        if (from < 2) {
-          // we added the dueDate property in the change from version 1 to
-          // version 2
-          await m.addColumn(events, events.selectedDate);
-        }
-      },
-    );
-  }
-  //データの読み込み
-  Stream<List<Event>> watchEntries() {
-    return (select(events)).watch();
-  }
-
-//データの読み込み
   Future<List<Event>> get allEventsData => select(events).get();
 
-  //データの追加
   Future<int> addEvent(Event e) {
     return into(events).insert(EventsCompanion(
+      id: Value(e.id),
       selectedDate: Value(e.selectedDate),
       title: Value(e.title),
       isAllDay: Value(e.isAllDay),
@@ -62,7 +43,19 @@ class MyDatabase extends _$MyDatabase {
     ));
   }
 
-  //データの全削除
+  Future<int> updateEvent(Event event) {
+    return (update(events)..where((tbl) => tbl.id.equals(events.id.toString())))
+        .write(EventsCompanion(
+      id: Value(event.id),
+      selectedDate: Value(event.selectedDate),
+      title: Value(event.title),
+      isAllDay: Value(event.isAllDay),
+      startDateTime: Value(event.startDateTime),
+      endDateTime: Value(event.endDateTime),
+      comment: Value(event.comment),
+    ));
+  }
+
   Future<void> deleteEvent(List<Event> e) {
     return (delete(events).go());
   }

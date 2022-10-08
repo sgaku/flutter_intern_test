@@ -1,30 +1,29 @@
-import 'package:calendar_sample/main.dart';
+import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:calendar_sample/common/main.dart';
+import 'package:calendar_sample/service/event_db.dart';
 import 'package:calendar_sample/view/calendar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:calendar_sample/service/event_db.dart';
+import 'package:uuid/uuid.dart';
 
 //provider
-final startTimeProvider = StateProvider<DateTime>((ref) {
+final startTimeProvider = StateProvider.autoDispose<DateTime>((ref) {
   final selectedValue = ref.watch(selectedDayProvider);
-  // return DateTime.now();
-  return DateTime.utc(selectedValue.year, selectedValue.month,
-      selectedValue.day, DateTime.now().hour, DateTime.now().minute);
+  return DateTime(selectedValue.year, selectedValue.month, selectedValue.day,
+      DateTime.now().hour, DateTime.now().minute);
 });
 
-final endTimeProvider = StateProvider<DateTime>((ref) {
+final endTimeProvider = StateProvider.autoDispose<DateTime>((ref) {
   final selectedValue = ref.watch(selectedDayProvider);
-  // return DateTime.now();
-  return DateTime.utc(selectedValue.year, selectedValue.month,
-      selectedValue.day, DateTime.now().hour, DateTime.now().minute);
+  return DateTime(selectedValue.year, selectedValue.month, selectedValue.day,
+      DateTime.now().hour, DateTime.now().minute);
 });
 
-
-final switchProvider = StateProvider((ref) => false);
-final titleProvider = StateProvider((ref) => "");
-final commentProvider = StateProvider((ref) => "");
+final switchProvider = StateProvider.autoDispose((ref) => false);
+final titleProvider = StateProvider.autoDispose((ref) => "");
+final commentProvider = StateProvider.autoDispose((ref) => "");
 
 class ScheduleDetail extends ConsumerStatefulWidget {
   const ScheduleDetail({super.key});
@@ -39,6 +38,7 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
   DateTime endTime = DateTime.now();
   DateFormat dateAndTime = DateFormat('yyyy-MM-dd HH:mm');
   DateFormat date = DateFormat('yyyy-MM-dd ');
+  var uuid = Uuid();
 
   @override
   void initState() {
@@ -48,6 +48,7 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
 
   @override
   Widget build(BuildContext context) {
+    final Event? arg = (ModalRoute.of(context)?.settings.arguments) as Event?;
     //provider.value
     final selectedValue = ref.watch(selectedDayProvider);
     final titleValue = ref.watch(titleProvider);
@@ -56,6 +57,8 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
     final endTimeValue = ref.watch(endTimeProvider);
     final commentValue = ref.watch(commentProvider);
     final fetchDataBaseValue = ref.watch(fetchDataBaseProvider);
+    final selectedEvents = ref.watch(
+        fetchDataBaseProvider.select((value) => value.dataMap[selectedValue]));
 
     return Focus(
       focusNode: myFocusNode,
@@ -69,28 +72,61 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
             leading: IconButton(
               icon: const Icon(Icons.close),
               onPressed: () {
-                Navigator.pop(context);
+                //TODO: showModalActionSheetの実装
+                Navigator.popUntil(context, ModalRoute.withName("/"));
+                // showModalActionSheet(
+                //    context: (context),
+                //    message: "編集を破棄",
+                //    title: "編集を破棄",
+                //    cancelLabel: "キャンセル",
+                //  );
               },
             ),
             actions: [
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
-                  onPressed: //タイトルとコメントに何も入力されていなかったら（デフォルトで""が入っている）、押せないようにする
-                      titleValue.isEmpty || commentValue.isEmpty
-                          ? null
+                  onPressed:
+
+                      //タイトルとコメントに何も入力されていなかったら（デフォルトで""が入っている）、押せないようにする
+                      arg == null
+                          ? titleValue.isEmpty || commentValue.isEmpty
+                              ? null
+                              : () async {
+                                  await dataBase.addEvent(Event(
+                                      id: uuid.v1(),
+                                      selectedDate: selectedValue,
+                                      title: titleValue,
+                                      isAllDay: isAllDayValue,
+                                      startDateTime: startTimeValue,
+                                      endDateTime: endTimeValue,
+                                      comment: commentValue));
+
+                                  //driftのデータを更新
+                                  await fetchDataBaseValue.fetchDataList();
+                                  Navigator.popUntil(
+                                      context, ModalRoute.withName("/"));
+                                }
+
+                          ///もし既にデータがある場合は、updateする
+                        //TODO: アップデートの条件をなおす
                           : () async {
-                              //driftにデータを追加
-                              await dataBase.addEvent(Event(
-                                  selectedDate: selectedValue,
-                                  title: titleValue,
+                              await dataBase.updateEvent(Event(
+                                  id: arg.id,
+                                  selectedDate: arg.selectedDate,
+                                  title: titleValue.isEmpty
+                                      ? arg.title
+                                      : titleValue,
                                   isAllDay: isAllDayValue,
-                                  startDateTime: startTimeValue,
-                                  endDateTime: endTimeValue,
-                                  comment: commentValue));
+                                  startDateTime: arg.startDateTime,
+                                  endDateTime: arg.endDateTime,
+                                  comment: commentValue.isEmpty
+                                      ? arg.comment
+                                      : commentValue));
                               //driftのデータを更新
                               await fetchDataBaseValue.fetchDataList();
-                              Navigator.pop(context);
+                              Navigator.popUntil(
+                                  context, ModalRoute.withName("/"));
                             },
                   style: ElevatedButton.styleFrom(
                     primary: Colors.white,
@@ -100,14 +136,17 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                 ),
               )
             ],
-            title: const Text("予定の追加"),
+            title: selectedEvents == null
+                ? const Text("予定の追加")
+                : const Text("予定の編集"),
           ),
           body: Center(
             child: Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.all(12.0),
-                  child: TextField(
+                  child: TextFormField(
+                    initialValue: arg == null ? "" : arg.title,
                     autofocus: true,
                     decoration: const InputDecoration(
                       enabledBorder: OutlineInputBorder(
@@ -135,7 +174,7 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                         children: [
                           const Text("終日"),
                           Switch(
-                              value: isAllDayValue,
+                              value: arg == null ? isAllDayValue : arg.isAllDay,
                               onChanged: (value) {
                                 ref
                                     .read(switchProvider.notifier)
@@ -161,9 +200,13 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                           TextButton(
                             style: TextButton.styleFrom(
                                 foregroundColor: Colors.black),
-                            child: Text(isAllDayValue
-                                ? date.format(startTimeValue)
-                                : dateAndTime.format(startTimeValue)),
+                            child: Text(arg == null
+                                ? isAllDayValue
+                                    ? date.format(startTimeValue)
+                                    : dateAndTime.format(startTimeValue)
+                                : isAllDayValue
+                                    ? date.format(arg.startDateTime)
+                                    : dateAndTime.format(arg.startDateTime)),
                             onPressed: () {
                               _showCupertinoPicker(
                                 CupertinoDatePicker(
@@ -202,9 +245,13 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                           TextButton(
                             style: TextButton.styleFrom(
                                 foregroundColor: Colors.black),
-                            child: Text(isAllDayValue
-                                ? date.format(endTimeValue)
-                                : dateAndTime.format(endTimeValue)),
+                            child: Text(arg == null
+                                ? isAllDayValue
+                                    ? date.format(endTimeValue)
+                                    : dateAndTime.format(endTimeValue)
+                                : isAllDayValue
+                                    ? date.format(arg.endDateTime)
+                                    : dateAndTime.format(arg.endDateTime)),
                             onPressed: () {
                               _showCupertinoPicker(
                                 CupertinoDatePicker(
@@ -229,7 +276,8 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(12.0),
-                  child: TextField(
+                  child: TextFormField(
+                    initialValue: arg == null ? "" : arg.comment,
                     maxLines: null,
                     decoration: const InputDecoration(
                       enabledBorder: OutlineInputBorder(
@@ -259,7 +307,16 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                             color: Colors.red,
                           ),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          //TODO: showOkCancelAlertDialogの実装 driftでデータベースの削除
+                          showOkCancelAlertDialog(
+                            context: (context),
+                            title: "予定の削除",
+                            message: "本当にこの日の予定を削除しますか？",
+                            okLabel: "削除",
+                            cancelLabel: "キャンセル",
+                          );
+                        },
                       ),
                     ),
                   ),

@@ -1,4 +1,4 @@
-import 'package:calendar_sample/main.dart';
+import 'package:calendar_sample/common/main.dart';
 import 'package:calendar_sample/service/event_db.dart';
 import 'package:calendar_sample/view/schedule_detail.dart';
 import 'package:flutter/material.dart';
@@ -10,8 +10,7 @@ import '../model/fetch_db.dart';
 
 final showMonthProvider = StateProvider<DateTime?>((ref) => null);
 final focusedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
-final selectedDayProvider = StateProvider<DateTime>((ref) => DateTime.utc(
-    DateTime.now().year, DateTime.now().month, DateTime.now().day));
+final selectedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
 final fetchDataBaseProvider = ChangeNotifierProvider((ref) => FetchDateBase());
 
 class CalendarView extends ConsumerStatefulWidget {
@@ -26,6 +25,11 @@ class CalendarViewState extends ConsumerState<CalendarView> {
 
   @override
   void initState() {
+    ///driftからイベントを取得
+    Future(() async {
+      final fetchDataBaseValue = ref.read(fetchDataBaseProvider);
+      await fetchDataBaseValue.fetchDataList();
+    });
     super.initState();
   }
 
@@ -60,46 +64,56 @@ class CalendarViewState extends ConsumerState<CalendarView> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                OutlinedButton(
-                  onPressed: () {
-                    ///ボタンを押したら、focusedDayがある月のページにアニメーションしたい
-                    pageController.animateToPage(pageController.initialPage,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOut);
-                  },
-                  style: OutlinedButton.styleFrom(
-                    primary: Colors.black,
-                    shape: const StadiumBorder(),
-                  ),
-                  child: const Text("今日"),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    "${showMonthValue?.year ?? focusedDayValue.year}年${showMonthValue?.month ?? focusedDayValue.month}月",
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () async {
-                    var distance = await _datePicker(context);
-                    if (distance != 0) {
-                      pageController.animateToPage(
-                          pageController.page!.round() + distance,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 10, right: 40),
+                  child: OutlinedButton(
+                    onPressed: () {
+                      ///ボタンを押したら、focusedDayがある月のページにアニメーションする
+                      pageController.animateToPage(pageController.initialPage,
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeOut);
-                    }
-                  },
-                  icon: const Icon(Icons.arrow_drop_down),
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      shape: const StadiumBorder(),
+                    ),
+                    child: const Text(
+                      "今日",
+                      style: TextStyle(fontSize: 11),
+                    ),
+                  ),
                 ),
-              ],
-            ),
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      "${showMonthValue?.year ?? focusedDayValue.year}年${showMonthValue?.month ?? focusedDayValue.month}月",
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () async {
+                      var distance = await _datePicker(context);
+                      if (distance != 0) {
+                        pageController.animateToPage(
+                            pageController.page!.round() + distance,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut);
+                      }
+                    },
+                    icon: const Icon(Icons.arrow_drop_down),
+                  ),
+                ],
+              ),
+              const Spacer(),
+            ],
           ),
           TableCalendar(
             onCalendarCreated: (PageController controller) {
@@ -112,8 +126,8 @@ class CalendarViewState extends ConsumerState<CalendarView> {
             eventLoader: _getEventsFromDay,
             startingDayOfWeek: StartingDayOfWeek.monday,
             headerVisible: false,
-            firstDay: DateTime.utc(2018),
-            lastDay: DateTime.utc(2024),
+            firstDay: DateTime(2018),
+            lastDay: DateTime(2024),
             focusedDay: focusedDayValue,
             onDaySelected: (DateTime selectDay, DateTime focusDay) {
               ref.read(focusedDayProvider.notifier).update((state) => focusDay);
@@ -121,7 +135,13 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                   .read(selectedDayProvider.notifier)
                   .update((state) => selectDay);
               showDialog(
-                  context: context, builder: (context) => const DetailDialog());
+                  context: context,
+                  builder: (context) => Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: const [
+                          DetailDialog(),
+                        ],
+                      ));
             },
             selectedDayPredicate: (DateTime date) {
               return isSameDay(selectedDayValue, date);
@@ -258,23 +278,121 @@ class CalendarViewState extends ConsumerState<CalendarView> {
 }
 
 class DetailDialog extends ConsumerWidget {
-  const DetailDialog({super.key});
+  const DetailDialog({super.key, required});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    DateFormat time = DateFormat.Hm();
+    final selectedValue = ref.watch(selectedDayProvider);
+    final selectedEvents = ref.watch(
+        fetchDataBaseProvider.select((value) => value.dataMap[selectedValue]));
     return AlertDialog(
-      icon: IconButton(
-        icon: const Icon(Icons.add),
-        onPressed: () {
-          //編集ページへ遷移
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ScheduleDetail()),
-          );
-        },
+      insetPadding: const EdgeInsets.all(8),
+      content: SizedBox(
+        width: 270,
+        height: 530,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                RichText(
+                    text: const TextSpan(
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 17),
+                        children: <TextSpan>[
+                      TextSpan(text: '2022/10/08'),
+                      TextSpan(
+                          text: '(土)',
+                          style: TextStyle(
+                            fontWeight: FontWeight.normal,
+                          ))
+                    ])),
+                IconButton(
+                  onPressed: () {
+                    ///編集ページへ遷移
+                    Navigator.pushNamed(context, 'schedule');
+                  },
+                  icon: const Icon(Icons.add),
+                  color: Colors.blue,
+                )
+              ],
+            ),
+            if (selectedEvents == null)
+              const Expanded(
+                child: Center(
+                  child: Text("予定がありません。"),
+                ),
+              )
+            else
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: List.generate(
+                      selectedEvents.length,
+                      (index) {
+                        final currentEvent = selectedEvents[index];
+                        return Column(
+                          children: [
+                            const Divider(
+                              height: 1,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: ListTile(
+                                leading: SizedBox(
+                                  width: 50,
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            time.format(
+                                                currentEvent.startDateTime),
+                                            style: const TextStyle(fontSize: 12),
+                                          ),
+                                          Text(
+                                            time.format(
+                                                currentEvent.endDateTime),
+                                            style: const TextStyle(fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
+                                      const VerticalDivider(
+                                        thickness: 4,
+                                        color: Colors.blue,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                title: Text(
+                                  currentEvent.title,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                onTap: (){
+                                  Navigator.pushNamed(context, 'schedule',arguments: currentEvent );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
-      title: const Text("sample"),
-      shape: const StadiumBorder(),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(30),
+      ),
     );
   }
 }
