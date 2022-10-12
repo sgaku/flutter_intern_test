@@ -3,11 +3,21 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'event_data.freezed.dart';
 
 @freezed
-class EventDataState with _$EventDataState {
-  const factory EventDataState({
-    @Default([]) List<EventData> eventDataList,
-  }) = _EventDataState;
+class EditEventDataState with _$EditEventDataState {
+  const factory EditEventDataState({
+    @Default(false)bool isUpdated,
+    required EventData editEventData,
+  }) = _EditEventDataState;
 }
+
+@freezed
+class AddEventDataState with _$AddEventDataState{
+  const factory AddEventDataState({
+    required EventData? addEventData,
+}) = _AddEventDataState;
+}
+
+
 
 @freezed
 class EventData with _$EventData {

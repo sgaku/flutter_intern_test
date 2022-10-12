@@ -15,125 +15,287 @@ final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
 /// @nodoc
-mixin _$EventDataState {
-  List<EventData> get eventDataList => throw _privateConstructorUsedError;
+mixin _$EditEventDataState {
+  bool get isUpdated => throw _privateConstructorUsedError;
+  EventData get editEventData => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
-  $EventDataStateCopyWith<EventDataState> get copyWith =>
+  $EditEventDataStateCopyWith<EditEventDataState> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract class $EventDataStateCopyWith<$Res> {
-  factory $EventDataStateCopyWith(
-          EventDataState value, $Res Function(EventDataState) then) =
-      _$EventDataStateCopyWithImpl<$Res>;
-  $Res call({List<EventData> eventDataList});
+abstract class $EditEventDataStateCopyWith<$Res> {
+  factory $EditEventDataStateCopyWith(
+          EditEventDataState value, $Res Function(EditEventDataState) then) =
+      _$EditEventDataStateCopyWithImpl<$Res>;
+  $Res call({bool isUpdated, EventData editEventData});
+
+  $EventDataCopyWith<$Res> get editEventData;
 }
 
 /// @nodoc
-class _$EventDataStateCopyWithImpl<$Res>
-    implements $EventDataStateCopyWith<$Res> {
-  _$EventDataStateCopyWithImpl(this._value, this._then);
+class _$EditEventDataStateCopyWithImpl<$Res>
+    implements $EditEventDataStateCopyWith<$Res> {
+  _$EditEventDataStateCopyWithImpl(this._value, this._then);
 
-  final EventDataState _value;
+  final EditEventDataState _value;
   // ignore: unused_field
-  final $Res Function(EventDataState) _then;
+  final $Res Function(EditEventDataState) _then;
 
   @override
   $Res call({
-    Object? eventDataList = freezed,
+    Object? isUpdated = freezed,
+    Object? editEventData = freezed,
   }) {
     return _then(_value.copyWith(
-      eventDataList: eventDataList == freezed
-          ? _value.eventDataList
-          : eventDataList // ignore: cast_nullable_to_non_nullable
-              as List<EventData>,
+      isUpdated: isUpdated == freezed
+          ? _value.isUpdated
+          : isUpdated // ignore: cast_nullable_to_non_nullable
+              as bool,
+      editEventData: editEventData == freezed
+          ? _value.editEventData
+          : editEventData // ignore: cast_nullable_to_non_nullable
+              as EventData,
     ));
+  }
+
+  @override
+  $EventDataCopyWith<$Res> get editEventData {
+    return $EventDataCopyWith<$Res>(_value.editEventData, (value) {
+      return _then(_value.copyWith(editEventData: value));
+    });
   }
 }
 
 /// @nodoc
-abstract class _$$_EventDataStateCopyWith<$Res>
-    implements $EventDataStateCopyWith<$Res> {
-  factory _$$_EventDataStateCopyWith(
-          _$_EventDataState value, $Res Function(_$_EventDataState) then) =
-      __$$_EventDataStateCopyWithImpl<$Res>;
+abstract class _$$_EditEventDataStateCopyWith<$Res>
+    implements $EditEventDataStateCopyWith<$Res> {
+  factory _$$_EditEventDataStateCopyWith(_$_EditEventDataState value,
+          $Res Function(_$_EditEventDataState) then) =
+      __$$_EditEventDataStateCopyWithImpl<$Res>;
   @override
-  $Res call({List<EventData> eventDataList});
+  $Res call({bool isUpdated, EventData editEventData});
+
+  @override
+  $EventDataCopyWith<$Res> get editEventData;
 }
 
 /// @nodoc
-class __$$_EventDataStateCopyWithImpl<$Res>
-    extends _$EventDataStateCopyWithImpl<$Res>
-    implements _$$_EventDataStateCopyWith<$Res> {
-  __$$_EventDataStateCopyWithImpl(
-      _$_EventDataState _value, $Res Function(_$_EventDataState) _then)
-      : super(_value, (v) => _then(v as _$_EventDataState));
+class __$$_EditEventDataStateCopyWithImpl<$Res>
+    extends _$EditEventDataStateCopyWithImpl<$Res>
+    implements _$$_EditEventDataStateCopyWith<$Res> {
+  __$$_EditEventDataStateCopyWithImpl(
+      _$_EditEventDataState _value, $Res Function(_$_EditEventDataState) _then)
+      : super(_value, (v) => _then(v as _$_EditEventDataState));
 
   @override
-  _$_EventDataState get _value => super._value as _$_EventDataState;
+  _$_EditEventDataState get _value => super._value as _$_EditEventDataState;
 
   @override
   $Res call({
-    Object? eventDataList = freezed,
+    Object? isUpdated = freezed,
+    Object? editEventData = freezed,
   }) {
-    return _then(_$_EventDataState(
-      eventDataList: eventDataList == freezed
-          ? _value._eventDataList
-          : eventDataList // ignore: cast_nullable_to_non_nullable
-              as List<EventData>,
+    return _then(_$_EditEventDataState(
+      isUpdated: isUpdated == freezed
+          ? _value.isUpdated
+          : isUpdated // ignore: cast_nullable_to_non_nullable
+              as bool,
+      editEventData: editEventData == freezed
+          ? _value.editEventData
+          : editEventData // ignore: cast_nullable_to_non_nullable
+              as EventData,
     ));
   }
 }
 
 /// @nodoc
 
-class _$_EventDataState implements _EventDataState {
-  const _$_EventDataState({final List<EventData> eventDataList = const []})
-      : _eventDataList = eventDataList;
+class _$_EditEventDataState implements _EditEventDataState {
+  const _$_EditEventDataState(
+      {this.isUpdated = false, required this.editEventData});
 
-  final List<EventData> _eventDataList;
   @override
   @JsonKey()
-  List<EventData> get eventDataList {
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_eventDataList);
-  }
+  final bool isUpdated;
+  @override
+  final EventData editEventData;
 
   @override
   String toString() {
-    return 'EventDataState(eventDataList: $eventDataList)';
+    return 'EditEventDataState(isUpdated: $isUpdated, editEventData: $editEventData)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_EventDataState &&
+            other is _$_EditEventDataState &&
+            const DeepCollectionEquality().equals(other.isUpdated, isUpdated) &&
             const DeepCollectionEquality()
-                .equals(other._eventDataList, _eventDataList));
+                .equals(other.editEventData, editEventData));
   }
 
   @override
   int get hashCode => Object.hash(
-      runtimeType, const DeepCollectionEquality().hash(_eventDataList));
+      runtimeType,
+      const DeepCollectionEquality().hash(isUpdated),
+      const DeepCollectionEquality().hash(editEventData));
 
   @JsonKey(ignore: true)
   @override
-  _$$_EventDataStateCopyWith<_$_EventDataState> get copyWith =>
-      __$$_EventDataStateCopyWithImpl<_$_EventDataState>(this, _$identity);
+  _$$_EditEventDataStateCopyWith<_$_EditEventDataState> get copyWith =>
+      __$$_EditEventDataStateCopyWithImpl<_$_EditEventDataState>(
+          this, _$identity);
 }
 
-abstract class _EventDataState implements EventDataState {
-  const factory _EventDataState({final List<EventData> eventDataList}) =
-      _$_EventDataState;
+abstract class _EditEventDataState implements EditEventDataState {
+  const factory _EditEventDataState(
+      {final bool isUpdated,
+      required final EventData editEventData}) = _$_EditEventDataState;
 
   @override
-  List<EventData> get eventDataList;
+  bool get isUpdated;
+  @override
+  EventData get editEventData;
   @override
   @JsonKey(ignore: true)
-  _$$_EventDataStateCopyWith<_$_EventDataState> get copyWith =>
+  _$$_EditEventDataStateCopyWith<_$_EditEventDataState> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$AddEventDataState {
+  EventData? get addEventData => throw _privateConstructorUsedError;
+
+  @JsonKey(ignore: true)
+  $AddEventDataStateCopyWith<AddEventDataState> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $AddEventDataStateCopyWith<$Res> {
+  factory $AddEventDataStateCopyWith(
+          AddEventDataState value, $Res Function(AddEventDataState) then) =
+      _$AddEventDataStateCopyWithImpl<$Res>;
+  $Res call({EventData? addEventData});
+
+  $EventDataCopyWith<$Res>? get addEventData;
+}
+
+/// @nodoc
+class _$AddEventDataStateCopyWithImpl<$Res>
+    implements $AddEventDataStateCopyWith<$Res> {
+  _$AddEventDataStateCopyWithImpl(this._value, this._then);
+
+  final AddEventDataState _value;
+  // ignore: unused_field
+  final $Res Function(AddEventDataState) _then;
+
+  @override
+  $Res call({
+    Object? addEventData = freezed,
+  }) {
+    return _then(_value.copyWith(
+      addEventData: addEventData == freezed
+          ? _value.addEventData
+          : addEventData // ignore: cast_nullable_to_non_nullable
+              as EventData?,
+    ));
+  }
+
+  @override
+  $EventDataCopyWith<$Res>? get addEventData {
+    if (_value.addEventData == null) {
+      return null;
+    }
+
+    return $EventDataCopyWith<$Res>(_value.addEventData!, (value) {
+      return _then(_value.copyWith(addEventData: value));
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$_AddEventDataStateCopyWith<$Res>
+    implements $AddEventDataStateCopyWith<$Res> {
+  factory _$$_AddEventDataStateCopyWith(_$_AddEventDataState value,
+          $Res Function(_$_AddEventDataState) then) =
+      __$$_AddEventDataStateCopyWithImpl<$Res>;
+  @override
+  $Res call({EventData? addEventData});
+
+  @override
+  $EventDataCopyWith<$Res>? get addEventData;
+}
+
+/// @nodoc
+class __$$_AddEventDataStateCopyWithImpl<$Res>
+    extends _$AddEventDataStateCopyWithImpl<$Res>
+    implements _$$_AddEventDataStateCopyWith<$Res> {
+  __$$_AddEventDataStateCopyWithImpl(
+      _$_AddEventDataState _value, $Res Function(_$_AddEventDataState) _then)
+      : super(_value, (v) => _then(v as _$_AddEventDataState));
+
+  @override
+  _$_AddEventDataState get _value => super._value as _$_AddEventDataState;
+
+  @override
+  $Res call({
+    Object? addEventData = freezed,
+  }) {
+    return _then(_$_AddEventDataState(
+      addEventData: addEventData == freezed
+          ? _value.addEventData
+          : addEventData // ignore: cast_nullable_to_non_nullable
+              as EventData?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$_AddEventDataState implements _AddEventDataState {
+  const _$_AddEventDataState({required this.addEventData});
+
+  @override
+  final EventData? addEventData;
+
+  @override
+  String toString() {
+    return 'AddEventDataState(addEventData: $addEventData)';
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$_AddEventDataState &&
+            const DeepCollectionEquality()
+                .equals(other.addEventData, addEventData));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, const DeepCollectionEquality().hash(addEventData));
+
+  @JsonKey(ignore: true)
+  @override
+  _$$_AddEventDataStateCopyWith<_$_AddEventDataState> get copyWith =>
+      __$$_AddEventDataStateCopyWithImpl<_$_AddEventDataState>(
+          this, _$identity);
+}
+
+abstract class _AddEventDataState implements AddEventDataState {
+  const factory _AddEventDataState({required final EventData? addEventData}) =
+      _$_AddEventDataState;
+
+  @override
+  EventData? get addEventData;
+  @override
+  @JsonKey(ignore: true)
+  _$$_AddEventDataStateCopyWith<_$_AddEventDataState> get copyWith =>
       throw _privateConstructorUsedError;
 }
 

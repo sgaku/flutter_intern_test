@@ -1,38 +1,29 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:calendar_sample/common/main.dart';
-import 'package:calendar_sample/service/event_db.dart';
+import 'package:calendar_sample/model/edit_event_provider.dart';
 import 'package:calendar_sample/view/calendar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import '../repository/event_data.dart';
 
 //provider
-final startTimeProvider = StateProvider.autoDispose<DateTime>((ref) {
-  final selectedValue = ref.watch(selectedDayProvider);
-  return DateTime(selectedValue.year, selectedValue.month, selectedValue.day,
-      DateTime.now().hour, DateTime.now().minute);
+final eventDataProvider = StateNotifierProvider.autoDispose
+    .family<EditEventDataNotifier, EditEventDataState, EventData>(
+        (ref, eventData) {
+  return EditEventDataNotifier(eventData);
 });
 
-final endTimeProvider = StateProvider.autoDispose<DateTime>((ref) {
-  final selectedValue = ref.watch(selectedDayProvider);
-  return DateTime(selectedValue.year, selectedValue.month, selectedValue.day,
-      DateTime.now().hour, DateTime.now().minute);
-});
-
-final switchProvider = StateProvider.autoDispose((ref) => false);
-final titleProvider = StateProvider.autoDispose((ref) => "");
-final commentProvider = StateProvider.autoDispose((ref) => "");
-
-class ScheduleDetail extends ConsumerStatefulWidget {
-  const ScheduleDetail({super.key});
+class EditSchedulePage extends ConsumerStatefulWidget {
+  const EditSchedulePage({super.key});
 
   @override
   ScheduleDetailState createState() => ScheduleDetailState();
 }
 
-class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
+class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
   late FocusNode myFocusNode;
 
   DateTime startTime = DateTime.now();
@@ -49,19 +40,13 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
 
   @override
   Widget build(BuildContext context) {
-    final Event? arg = (ModalRoute.of(context)?.settings.arguments) as Event?;
-    //selectedDayのプロバイダー
-    final selectedValue = ref.watch(selectedDayProvider);
-    //autoDisposeされるプロバイダー
-    final titleValue = ref.watch(titleProvider);
-    final isAllDayValue = ref.watch(switchProvider);
-    final startTimeValue = ref.watch(startTimeProvider);
-    final endTimeValue = ref.watch(endTimeProvider);
-    final commentValue = ref.watch(commentProvider);
+    final EventData arg =
+        (ModalRoute.of(context)?.settings.arguments) as EventData;
+
+    final eventValue = ref.watch(eventDataProvider(arg));
+
     //データベースを取ってくるプロバイダー
     final fetchDataBaseValue = ref.watch(fetchDataBaseProvider);
-    final selectedEvents = ref.watch(
-        fetchDataBaseProvider.select((value) => value.dataMap[selectedValue]));
 
     return Focus(
       focusNode: myFocusNode,
@@ -91,39 +76,14 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                 child: ElevatedButton(
                   onPressed:
                       //タイトルとコメントに何も入力されていなかったら（デフォルトで""が入っている）、押せないようにする
-                      arg == null
-                          ? titleValue.isEmpty || commentValue.isEmpty
-                              ? null
-                              : () async {
-                                  await dataBase.addEvent(Event(
-                                      id: uuid.v1(),
-                                      selectedDate: selectedValue,
-                                      title: titleValue,
-                                      isAllDay: isAllDayValue,
-                                      startDateTime: startTimeValue,
-                                      endDateTime: endTimeValue,
-                                      comment: commentValue));
-                                  //driftのデータを更新
-                                  await fetchDataBaseValue.fetchDataList();
-                                  Navigator.popUntil(
-                                      context, ModalRoute.withName("/"));
-                                }
+                      !eventValue.isUpdated
+                          ? null
+                          :
 
                           ///もし既にデータがある場合は、updateする
                           //TODO: アップデートの条件をなおす
-                          : () async {
-                              await dataBase.updateEvent(Event(
-                                  id: arg.id,
-                                  selectedDate: arg.selectedDate,
-                                  title: titleValue.isEmpty
-                                      ? arg.title
-                                      : titleValue,
-                                  isAllDay: isAllDayValue,
-                                  startDateTime: arg.startDateTime,
-                                  endDateTime: arg.endDateTime,
-                                  comment: commentValue.isEmpty
-                                      ? arg.comment
-                                      : commentValue));
+                          () async {
+                              dataBase.updateEvent(eventValue.editEventData);
                               //driftのデータを更新
                               await fetchDataBaseValue.fetchDataList();
                               Navigator.popUntil(
@@ -137,9 +97,7 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                 ),
               )
             ],
-            title: selectedEvents == null
-                ? const Text("予定の追加")
-                : const Text("予定の編集"),
+            title: const Text("予定の編集"),
           ),
           body: Center(
             child: Column(
@@ -147,7 +105,7 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                 Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: TextFormField(
-                    initialValue: arg == null ? "" : arg.title,
+                    initialValue: eventValue.editEventData.title,
                     autofocus: true,
                     decoration: const InputDecoration(
                       enabledBorder: OutlineInputBorder(
@@ -158,7 +116,10 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                       border: OutlineInputBorder(),
                     ),
                     onChanged: (text) {
-                      ref.read(titleProvider.notifier).update((state) => text);
+                      ref
+                          .read(eventDataProvider(arg).notifier)
+                          .updateTitle(text);
+                      // ref.read(titleProvider.notifier).update((state) => text);
                     },
                   ),
                 ),
@@ -175,11 +136,14 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                         children: [
                           const Text("終日"),
                           Switch(
-                              value: arg == null ? isAllDayValue : arg.isAllDay,
+                              value: eventValue.editEventData.isAllDay,
                               onChanged: (value) {
                                 ref
-                                    .read(switchProvider.notifier)
-                                    .update((state) => value);
+                                    .read(eventDataProvider(arg).notifier)
+                                    .updateIsAllDay(value);
+                                // ref
+                                //     .read(switchProvider.notifier)
+                                //     .update((state) => value);
                               })
                         ],
                       ),
@@ -201,15 +165,14 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                           TextButton(
                             style: TextButton.styleFrom(
                                 foregroundColor: Colors.black),
-                            child: Text(arg == null
-                                ? isAllDayValue
-                                    ? date.format(startTimeValue)
-                                    : dateAndTime.format(startTimeValue)
-                                : isAllDayValue
-                                    ? date.format(arg.startDateTime)
-                                    : dateAndTime.format(arg.startDateTime)),
+                            child: Text(eventValue.editEventData.isAllDay
+                                ? date
+                                    .format(eventValue.editEventData.startTime)
+                                : dateAndTime.format(
+                                    eventValue.editEventData.startTime)),
                             onPressed: () {
-                              int initialMinute = startTimeValue.minute;
+                              int initialMinute =
+                                  eventValue.editEventData.startTime.minute;
                               if (initialMinute % 15 != 0) {
                                 initialMinute =
                                     initialMinute - initialMinute % 15 + 15;
@@ -218,12 +181,12 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                                 CupertinoDatePicker(
                                   minuteInterval: 15,
                                   initialDateTime: DateTime(
-                                      startTimeValue.year,
-                                      startTimeValue.month,
-                                      startTimeValue.day,
-                                      startTimeValue.hour,
+                                      eventValue.editEventData.startTime.year,
+                                      eventValue.editEventData.startTime.month,
+                                      eventValue.editEventData.startTime.day,
+                                      eventValue.editEventData.startTime.hour,
                                       initialMinute),
-                                  mode: isAllDayValue
+                                  mode: eventValue.editEventData.isAllDay
                                       ? CupertinoDatePickerMode.date
                                       : CupertinoDatePickerMode.dateAndTime,
                                   use24hFormat: true,
@@ -233,6 +196,7 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                                     });
                                   },
                                 ),
+                                arg,
                               );
                             },
                           )
@@ -256,15 +220,13 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                           TextButton(
                             style: TextButton.styleFrom(
                                 foregroundColor: Colors.black),
-                            child: Text(arg == null
-                                ? isAllDayValue
-                                    ? date.format(endTimeValue)
-                                    : dateAndTime.format(endTimeValue)
-                                : isAllDayValue
-                                    ? date.format(arg.endDateTime)
-                                    : dateAndTime.format(arg.endDateTime)),
+                            child: Text(eventValue.editEventData.isAllDay
+                                ? date.format(eventValue.editEventData.endTime)
+                                : dateAndTime
+                                    .format(eventValue.editEventData.endTime)),
                             onPressed: () {
-                              int initialMinute = endTimeValue.minute;
+                              int initialMinute =
+                                  eventValue.editEventData.endTime.minute;
                               if (initialMinute % 15 != 0) {
                                 initialMinute =
                                     initialMinute - initialMinute % 15 + 15;
@@ -273,12 +235,12 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                                 CupertinoDatePicker(
                                   minuteInterval: 15,
                                   initialDateTime: DateTime(
-                                      startTimeValue.year,
-                                      endTimeValue.month,
-                                      endTimeValue.day,
-                                      endTimeValue.hour,
-                                      (initialMinute)),
-                                  mode: isAllDayValue
+                                      eventValue.editEventData.endTime.year,
+                                      eventValue.editEventData.endTime.month,
+                                      eventValue.editEventData.endTime.day,
+                                      eventValue.editEventData.endTime.hour,
+                                      initialMinute),
+                                  mode: eventValue.editEventData.isAllDay
                                       ? CupertinoDatePickerMode.date
                                       : CupertinoDatePickerMode.dateAndTime,
                                   use24hFormat: true,
@@ -288,6 +250,7 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                                     });
                                   },
                                 ),
+                                arg,
                               );
                             },
                           )
@@ -299,7 +262,7 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                 Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: TextFormField(
-                    initialValue: arg == null ? "" : arg.comment,
+                    initialValue: eventValue.editEventData.comment,
                     maxLines: null,
                     decoration: const InputDecoration(
                       enabledBorder: OutlineInputBorder(
@@ -311,8 +274,11 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                     ),
                     onChanged: (text) {
                       ref
-                          .read(commentProvider.notifier)
-                          .update((state) => text);
+                          .read(eventDataProvider(arg).notifier)
+                          .updateComment(text);
+                      // ref
+                      //     .read(commentProvider.notifier)
+                      //     .update((state) => text);
                     },
                   ),
                 ),
@@ -351,7 +317,7 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
     );
   }
 
-  void _showCupertinoPicker(Widget child) {
+  void _showCupertinoPicker(Widget child, EventData data) {
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) => Container(
@@ -375,12 +341,12 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                       child: const Text("キャンセル")),
                   TextButton(
                       onPressed: () {
-                        final switchValue = ref.read(switchProvider);
+                        final eventValue = ref.read(eventDataProvider(data));
                         final isEndTimeBefore = endTime.isBefore(startTime);
                         final isEqual = endTime.microsecondsSinceEpoch ==
                             startTime.millisecondsSinceEpoch;
 
-                        switch (switchValue) {
+                        switch (eventValue.editEventData.isAllDay) {
                           case true:
                             if (isEndTimeBefore || isEqual) {
                               endTime = startTime.add(const Duration(days: 1));
@@ -394,11 +360,11 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                         }
 
                         ref
-                            .read(startTimeProvider.notifier)
-                            .update((state) => startTime);
+                            .read(eventDataProvider(data).notifier)
+                            .updateStartTime(startTime);
                         ref
-                            .read(endTimeProvider.notifier)
-                            .update((state) => endTime);
+                            .read(eventDataProvider(data).notifier)
+                            .updateEndTime(endTime);
 
                         Navigator.pop(context);
                       },

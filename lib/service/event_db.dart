@@ -1,3 +1,4 @@
+import 'package:calendar_sample/repository/event_data.dart';
 import 'package:drift/drift.dart';
 import 'dart:io';
 import 'package:drift/native.dart';
@@ -31,27 +32,28 @@ class MyDatabase extends _$MyDatabase {
 
   Future<List<Event>> get allEventsData => select(events).get();
 
-  Future<int> addEvent(Event e) {
+  Future<int> addEvent(EventData e) {
     return into(events).insert(EventsCompanion(
       id: Value(e.id),
       selectedDate: Value(e.selectedDate),
       title: Value(e.title),
       isAllDay: Value(e.isAllDay),
-      startDateTime: Value(e.startDateTime),
-      endDateTime: Value(e.endDateTime),
+      startDateTime: Value(e.startTime),
+      endDateTime: Value(e.endTime),
       comment: Value(e.comment),
     ));
   }
 
-  Future<int> updateEvent(Event event) {
+  //TODO: updateの処理をなおす　return文のコードがおかしい
+  Future<int> updateEvent(EventData event) {
     return (update(events)..where((tbl) => tbl.id.equals(events.id.toString())))
         .write(EventsCompanion(
       id: Value(event.id),
       selectedDate: Value(event.selectedDate),
       title: Value(event.title),
       isAllDay: Value(event.isAllDay),
-      startDateTime: Value(event.startDateTime),
-      endDateTime: Value(event.endDateTime),
+      startDateTime: Value(event.startTime),
+      endDateTime: Value(event.endTime),
       comment: Value(event.comment),
     ));
   }

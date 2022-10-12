@@ -1,5 +1,5 @@
 import 'package:calendar_sample/common/main.dart';
-import 'package:calendar_sample/service/event_db.dart';
+import 'package:calendar_sample/repository/event_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -35,7 +35,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
     super.initState();
   }
 
-  List<Event> _getEventsFromDay(DateTime date) {
+  List<EventData> _getEventsFromDay(DateTime date) {
     final fetchDataBaseValue = ref.watch(fetchDataBaseProvider);
     return fetchDataBaseValue.dataMap[date] ?? [];
   }
@@ -303,7 +303,7 @@ class DetailDialog extends ConsumerWidget {
                 IconButton(
                   onPressed: () {
                     ///編集ページへ遷移
-                    Navigator.pushNamed(context, 'schedule');
+                    Navigator.pushNamed(context, 'addSchedule');
                   },
                   icon: const Icon(Icons.add),
                   color: Colors.blue,
@@ -344,13 +344,13 @@ class DetailDialog extends ConsumerWidget {
                                         children: [
                                           Text(
                                             time.format(
-                                                currentEvent.startDateTime),
+                                                currentEvent.startTime),
                                             style:
                                                 const TextStyle(fontSize: 12),
                                           ),
                                           Text(
                                             time.format(
-                                                currentEvent.endDateTime),
+                                                currentEvent.endTime),
                                             style:
                                                 const TextStyle(fontSize: 12),
                                           ),
@@ -368,7 +368,7 @@ class DetailDialog extends ConsumerWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 onTap: () {
-                                  Navigator.pushNamed(context, 'schedule',
+                                  Navigator.pushNamed(context, 'editSchedule',
                                       arguments: currentEvent);
                                 },
                               ),
