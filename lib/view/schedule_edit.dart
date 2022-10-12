@@ -119,7 +119,6 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                       ref
                           .read(eventDataProvider(arg).notifier)
                           .updateTitle(text);
-                      // ref.read(titleProvider.notifier).update((state) => text);
                     },
                   ),
                 ),
@@ -141,9 +140,6 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                                 ref
                                     .read(eventDataProvider(arg).notifier)
                                     .updateIsAllDay(value);
-                                // ref
-                                //     .read(switchProvider.notifier)
-                                //     .update((state) => value);
                               })
                         ],
                       ),
@@ -276,9 +272,6 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                       ref
                           .read(eventDataProvider(arg).notifier)
                           .updateComment(text);
-                      // ref
-                      //     .read(commentProvider.notifier)
-                      //     .update((state) => text);
                     },
                   ),
                 ),
