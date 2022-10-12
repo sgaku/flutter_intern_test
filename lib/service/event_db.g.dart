@@ -262,7 +262,7 @@ class $EventsTable extends Events with TableInfo<$EventsTable, Event> {
       'is_all_day', aliasedName, false,
       type: DriftSqlType.bool,
       requiredDuringInsert: true,
-      defaultConstraints: 'CHECK (is_all_day IN (0, 1))');
+      defaultConstraints: 'CHECK ("is_all_day" IN (0, 1))');
   final VerificationMeta _startDateTimeMeta =
       const VerificationMeta('startDateTime');
   @override

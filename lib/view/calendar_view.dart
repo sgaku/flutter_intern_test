@@ -1,8 +1,8 @@
 import 'package:calendar_sample/common/main.dart';
 import 'package:calendar_sample/service/event_db.dart';
-import 'package:calendar_sample/view/schedule_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -25,6 +25,8 @@ class CalendarViewState extends ConsumerState<CalendarView> {
 
   @override
   void initState() {
+    initializeDateFormatting('ja');
+
     ///driftからイベントを取得
     Future(() async {
       final fetchDataBaseValue = ref.read(fetchDataBaseProvider);
@@ -228,48 +230,34 @@ class CalendarViewState extends ConsumerState<CalendarView> {
         //年が同じで月が違う時
         if (datePicked.year == focusedDayValue.year &&
             datePicked.month != focusedDayValue.month) {
-          var cur = datePicked.month.toInt();
-          var pre = focusedDayValue.month.toInt();
-          return cur - pre;
+          return datePicked.month.toInt() - focusedDayValue.month.toInt();
           //月が同じで年が違う時
         } else if (datePicked.month == focusedDayValue.month &&
             datePicked.year != focusedDayValue.year) {
-          var cur = datePicked.year.toInt();
-          var pre = focusedDayValue.year.toInt();
-          return (cur - pre) * 12;
+          return (datePicked.year.toInt() - focusedDayValue.year.toInt()) * 12;
           //年と月両方違う時
         } else if (datePicked.year != focusedDayValue.year &&
             datePicked.month != focusedDayValue.month) {
-          var curY = datePicked.year.toInt();
-          var preY = focusedDayValue.year.toInt();
-          var curM = datePicked.month.toInt();
-          var preM = focusedDayValue.month.toInt();
-          var disY = curY - preY;
-          return (curM - preM) + disY * 12;
+          var disY = datePicked.year.toInt() - focusedDayValue.year.toInt();
+          return (datePicked.month.toInt() - focusedDayValue.month.toInt()) +
+              disY * 12;
         }
         break;
       default:
         //年が同じで月が違う時
         if (datePicked.year == showMonthValue!.year &&
             datePicked.month != showMonthValue.month) {
-          var cur = datePicked.month.toInt();
-          var pre = showMonthValue.month.toInt();
-          return cur - pre;
+          return datePicked.month.toInt() - showMonthValue.month.toInt();
           //月が同じで年が違う時
         } else if (datePicked.month == showMonthValue.month &&
             datePicked.year != showMonthValue.year) {
-          var cur = datePicked.year.toInt();
-          var pre = showMonthValue.year.toInt();
-          return (cur - pre) * 12;
+          return (datePicked.year.toInt() - showMonthValue.year.toInt()) * 12;
           //年と月両方違う時
         } else if (datePicked.year != showMonthValue.year &&
             datePicked.month != showMonthValue.month) {
-          var curY = datePicked.year.toInt();
-          var preY = showMonthValue.year.toInt();
-          var curM = datePicked.month.toInt();
-          var preM = showMonthValue.month.toInt();
-          var disY = curY - preY;
-          return (curM - preM) + disY * 12;
+          var disY = datePicked.year.toInt() - showMonthValue.year.toInt();
+          return (datePicked.month.toInt() - showMonthValue.month.toInt()) +
+              disY * 12;
         }
         break;
     }
@@ -283,6 +271,8 @@ class DetailDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     DateFormat time = DateFormat.Hm();
+    final dateFormatForDayOfWeek = DateFormat.E('ja');
+    DateFormat formatDayTitle = DateFormat('yyyy/MM/dd');
     final selectedValue = ref.watch(selectedDayProvider);
     final selectedEvents = ref.watch(
         fetchDataBaseProvider.select((value) => value.dataMap[selectedValue]));
@@ -297,16 +287,16 @@ class DetailDialog extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 RichText(
-                    text: const TextSpan(
-                        style: TextStyle(
+                    text: TextSpan(
+                        style: const TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.w500,
                             fontSize: 17),
                         children: <TextSpan>[
-                      TextSpan(text: '2022/10/08'),
+                      TextSpan(text: formatDayTitle.format(selectedValue)),
                       TextSpan(
-                          text: '(土)',
-                          style: TextStyle(
+                          text: dateFormatForDayOfWeek.format(selectedValue),
+                          style: const TextStyle(
                             fontWeight: FontWeight.normal,
                           ))
                     ])),
@@ -355,12 +345,14 @@ class DetailDialog extends ConsumerWidget {
                                           Text(
                                             time.format(
                                                 currentEvent.startDateTime),
-                                            style: const TextStyle(fontSize: 12),
+                                            style:
+                                                const TextStyle(fontSize: 12),
                                           ),
                                           Text(
                                             time.format(
                                                 currentEvent.endDateTime),
-                                            style: const TextStyle(fontSize: 12),
+                                            style:
+                                                const TextStyle(fontSize: 12),
                                           ),
                                         ],
                                       ),
@@ -375,8 +367,9 @@ class DetailDialog extends ConsumerWidget {
                                   currentEvent.title,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                onTap: (){
-                                  Navigator.pushNamed(context, 'schedule',arguments: currentEvent );
+                                onTap: () {
+                                  Navigator.pushNamed(context, 'schedule',
+                                      arguments: currentEvent);
                                 },
                               ),
                             ),

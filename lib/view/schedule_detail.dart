@@ -34,10 +34,11 @@ class ScheduleDetail extends ConsumerStatefulWidget {
 
 class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
   late FocusNode myFocusNode;
+
   DateTime startTime = DateTime.now();
   DateTime endTime = DateTime.now();
   DateFormat dateAndTime = DateFormat('yyyy-MM-dd HH:mm');
-  DateFormat date = DateFormat('yyyy-MM-dd ');
+  DateFormat date = DateFormat('yyyy-MM-dd');
   var uuid = Uuid();
 
   @override
@@ -49,13 +50,15 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
   @override
   Widget build(BuildContext context) {
     final Event? arg = (ModalRoute.of(context)?.settings.arguments) as Event?;
-    //provider.value
+    //selectedDayのプロバイダー
     final selectedValue = ref.watch(selectedDayProvider);
+    //autoDisposeされるプロバイダー
     final titleValue = ref.watch(titleProvider);
     final isAllDayValue = ref.watch(switchProvider);
     final startTimeValue = ref.watch(startTimeProvider);
     final endTimeValue = ref.watch(endTimeProvider);
     final commentValue = ref.watch(commentProvider);
+    //データベースを取ってくるプロバイダー
     final fetchDataBaseValue = ref.watch(fetchDataBaseProvider);
     final selectedEvents = ref.watch(
         fetchDataBaseProvider.select((value) => value.dataMap[selectedValue]));
@@ -87,7 +90,6 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
                   onPressed:
-
                       //タイトルとコメントに何も入力されていなかったら（デフォルトで""が入っている）、押せないようにする
                       arg == null
                           ? titleValue.isEmpty || commentValue.isEmpty
@@ -101,7 +103,6 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                                       startDateTime: startTimeValue,
                                       endDateTime: endTimeValue,
                                       comment: commentValue));
-
                                   //driftのデータを更新
                                   await fetchDataBaseValue.fetchDataList();
                                   Navigator.popUntil(
@@ -109,7 +110,7 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                                 }
 
                           ///もし既にデータがある場合は、updateする
-                        //TODO: アップデートの条件をなおす
+                          //TODO: アップデートの条件をなおす
                           : () async {
                               await dataBase.updateEvent(Event(
                                   id: arg.id,
@@ -208,9 +209,20 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                                     ? date.format(arg.startDateTime)
                                     : dateAndTime.format(arg.startDateTime)),
                             onPressed: () {
+                              int initialMinute = startTimeValue.minute;
+                              if (initialMinute % 15 != 0) {
+                                initialMinute =
+                                    initialMinute - initialMinute % 15 + 15;
+                              }
                               _showCupertinoPicker(
                                 CupertinoDatePicker(
-                                  initialDateTime: DateTime.now(),
+                                  minuteInterval: 15,
+                                  initialDateTime: DateTime(
+                                      startTimeValue.year,
+                                      startTimeValue.month,
+                                      startTimeValue.day,
+                                      startTimeValue.hour,
+                                      initialMinute),
                                   mode: isAllDayValue
                                       ? CupertinoDatePickerMode.date
                                       : CupertinoDatePickerMode.dateAndTime,
@@ -219,7 +231,6 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                                     setState(() {
                                       startTime = dateTime;
                                     });
-                                    // startTimeController.state = dateTime;
                                   },
                                 ),
                               );
@@ -253,9 +264,20 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                                     ? date.format(arg.endDateTime)
                                     : dateAndTime.format(arg.endDateTime)),
                             onPressed: () {
+                              int initialMinute = endTimeValue.minute;
+                              if (initialMinute % 15 != 0) {
+                                initialMinute =
+                                    initialMinute - initialMinute % 15 + 15;
+                              }
                               _showCupertinoPicker(
                                 CupertinoDatePicker(
-                                  initialDateTime: DateTime.now(),
+                                  minuteInterval: 15,
+                                  initialDateTime: DateTime(
+                                      startTimeValue.year,
+                                      endTimeValue.month,
+                                      endTimeValue.day,
+                                      endTimeValue.hour,
+                                      (initialMinute)),
                                   mode: isAllDayValue
                                       ? CupertinoDatePickerMode.date
                                       : CupertinoDatePickerMode.dateAndTime,
@@ -358,11 +380,19 @@ class ScheduleDetailState extends ConsumerState<ScheduleDetail> {
                         final isEqual = endTime.microsecondsSinceEpoch ==
                             startTime.millisecondsSinceEpoch;
 
-                        if (isEndTimeBefore || isEqual && switchValue) {
-                          endTime = startTime.add(const Duration(days: 1));
-                        } else if (isEndTimeBefore || isEqual && !switchValue) {
-                          endTime = startTime.add(const Duration(hours: 1));
+                        switch (switchValue) {
+                          case true:
+                            if (isEndTimeBefore || isEqual) {
+                              endTime = startTime.add(const Duration(days: 1));
+                            }
+                            break;
+                          case false:
+                            if (isEndTimeBefore || isEqual) {
+                              endTime = startTime.add(const Duration(hours: 1));
+                            }
+                            break;
                         }
+
                         ref
                             .read(startTimeProvider.notifier)
                             .update((state) => startTime);
