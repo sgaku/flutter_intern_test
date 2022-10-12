@@ -58,8 +58,12 @@ class MyDatabase extends _$MyDatabase {
     ));
   }
 
-  Future<void> deleteEvent(List<Event> e) {
+  Future<void> deleteAllEvent(List<EventData> e) {
     return (delete(events).go());
+  }
+
+  Future<void> deleteEvent(EventData e) {
+    return (delete(events)..where((tbl) => tbl.id.equals(e.id))).go();
   }
 }
 

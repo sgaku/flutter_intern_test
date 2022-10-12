@@ -59,7 +59,18 @@ class CalendarViewState extends ConsumerState<CalendarView> {
           IconButton(
               onPressed: () async {
                 final data = await dataBase.allEventsData;
-                await dataBase.deleteEvent(data);
+                final List<EventData> eventData = [];
+                for (int i = 0; i < data.length; i++) {
+                  eventData.add(EventData(
+                      id: data[i].id,
+                      selectedDate: data[i].selectedDate,
+                      title: data[i].title,
+                      isAllDay: data[i].isAllDay,
+                      startTime: data[i].startDateTime,
+                      endTime: data[i].endDateTime,
+                      comment: data[i].comment));
+                }
+                await dataBase.deleteAllEvent(eventData);
               },
               icon: const Icon(Icons.delete)),
         ],
@@ -338,24 +349,26 @@ class DetailDialog extends ConsumerWidget {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceAround,
                                     children: [
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            time.format(
-                                                currentEvent.startTime),
-                                            style:
-                                                const TextStyle(fontSize: 12),
-                                          ),
-                                          Text(
-                                            time.format(
-                                                currentEvent.endTime),
-                                            style:
-                                                const TextStyle(fontSize: 12),
-                                          ),
-                                        ],
-                                      ),
+                                      currentEvent.isAllDay
+                                          ? const Center(child: Text("終日"))
+                                          : Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  time.format(
+                                                      currentEvent.startTime),
+                                                  style: const TextStyle(
+                                                      fontSize: 12),
+                                                ),
+                                                Text(
+                                                  time.format(
+                                                      currentEvent.endTime),
+                                                  style: const TextStyle(
+                                                      fontSize: 12),
+                                                ),
+                                              ],
+                                            ),
                                       const VerticalDivider(
                                         thickness: 4,
                                         color: Colors.blue,

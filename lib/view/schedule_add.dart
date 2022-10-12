@@ -280,33 +280,33 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
                     },
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Container(
-                    height: 50,
-                    color: Colors.white,
-                    child: Center(
-                      child: TextButton(
-                        child: const Text(
-                          "この予定を削除",
-                          style: TextStyle(
-                            color: Colors.red,
-                          ),
-                        ),
-                        onPressed: () {
-                          //TODO: showOkCancelAlertDialogの実装 driftでデータベースの削除
-                          showOkCancelAlertDialog(
-                            context: (context),
-                            title: "予定の削除",
-                            message: "本当にこの日の予定を削除しますか？",
-                            okLabel: "削除",
-                            cancelLabel: "キャンセル",
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
+                // Padding(
+                //   padding: const EdgeInsets.all(12),
+                //   child: Container(
+                //     height: 50,
+                //     color: Colors.white,
+                //     child: Center(
+                //       child: TextButton(
+                //         child: const Text(
+                //           "この予定を削除",
+                //           style: TextStyle(
+                //             color: Colors.red,
+                //           ),
+                //         ),
+                //         onPressed: () {
+                //           //TODO: showOkCancelAlertDialogの実装 driftでデータベースの削除
+                //           showOkCancelAlertDialog(
+                //             context: (context),
+                //             title: "予定の削除",
+                //             message: "本当にこの日の予定を削除しますか？",
+                //             okLabel: "削除",
+                //             cancelLabel: "キャンセル",
+                //           );
+                //         },
+                //       ),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),

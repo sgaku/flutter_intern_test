@@ -288,15 +288,18 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                             color: Colors.red,
                           ),
                         ),
-                        onPressed: () {
+                        onPressed: () async {
+                          dataBase.deleteEvent(eventValue.editEventData);
+                          await fetchDataBaseValue.fetchDataList();
+                          Navigator.popUntil(context, ModalRoute.withName("/"));
                           //TODO: showOkCancelAlertDialogの実装 driftでデータベースの削除
-                          showOkCancelAlertDialog(
-                            context: (context),
-                            title: "予定の削除",
-                            message: "本当にこの日の予定を削除しますか？",
-                            okLabel: "削除",
-                            cancelLabel: "キャンセル",
-                          );
+                          // showOkCancelAlertDialog(
+                          //   context: (context),
+                          //   title: "予定の削除",
+                          //   message: "本当にこの日の予定を削除しますか？",
+                          //   okLabel: "削除",
+                          //   cancelLabel: "キャンセル",
+                          // );
                         },
                       ),
                     ),
