@@ -169,7 +169,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                   ),
                 );
               },
-              outsideBuilder:  (_, day, focusedDay) {
+              outsideBuilder: (_, day, focusedDay) {
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   margin: EdgeInsets.zero,
@@ -177,7 +177,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                   child: Text(
                     day.day.toString(),
                     style: const TextStyle(
-                      color : Color(0xFFAEAEAE),
+                      color: Color(0xFFAEAEAE),
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -210,7 +210,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: _textColor(day),
+                      color: _selectedDayColor(day),
                     ),
                   ),
                 );
@@ -247,7 +247,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                 )),
             calendarStyle: const CalendarStyle(
               markersMaxCount: 1,
-              markerMargin:EdgeInsets.only(top: 3) ,
+              markerMargin: EdgeInsets.only(top: 3),
               markerSize: 7,
               todayDecoration: BoxDecoration(
                 color: Colors.transparent,
@@ -272,7 +272,19 @@ class CalendarViewState extends ConsumerState<CalendarView> {
     if (day.weekday == DateTime.saturday) {
       return Colors.blue[600]!;
     }
-    if (day.day == DateTime.now().day) {
+    return defaultTextColor;
+  }
+
+  Color _selectedDayColor(DateTime day){
+    var now = DateTime.now();
+    const defaultTextColor = Colors.black87;
+    if (day.weekday == DateTime.sunday) {
+      return Colors.red;
+    }
+    if (day.weekday == DateTime.saturday) {
+      return Colors.blue[600]!;
+    }
+    if(DateTime(day.month,day.day) == DateTime(now.month,now.day)){
       return Colors.white;
     }
     return defaultTextColor;

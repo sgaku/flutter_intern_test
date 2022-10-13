@@ -3,12 +3,18 @@ import 'package:calendar_sample/view/calendar_view.dart';
 import 'package:calendar_sample/view/schedule_add.dart';
 import 'package:calendar_sample/view/schedule_edit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 late MyDatabase dataBase;
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   dataBase = MyDatabase();
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -37,7 +43,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const CalendarView(),
         'addSchedule': (context) => const AddSchedulePage(),
-        'editSchedule':(context) => const EditSchedulePage(),
+        'editSchedule': (context) => const EditSchedulePage(),
       },
     );
   }

@@ -358,7 +358,7 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                         switch (eventValue.editEventData.isAllDay) {
                           case true:
                             if (isEndTimeBefore || isEqual) {
-                              endTime = startTime.add(const Duration(days: 1));
+                              endTime = startTime;
                             }
                             break;
                           case false:

@@ -1,4 +1,3 @@
-import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:calendar_sample/view/calendar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -62,14 +61,7 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
               leading: IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () {
-                  //TODO: showModalActionSheetの実装
                   Navigator.popUntil(context, ModalRoute.withName("/"));
-                  // showModalActionSheet(
-                  //    context: (context),
-                  //    message: "編集を破棄",
-                  //    title: "編集を破棄",
-                  //    cancelLabel: "キャンセル",
-                  //  );
                 },
               ),
               actions: [
@@ -77,7 +69,7 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
                     onPressed:
-                        //タイトルとコメントに何も入力されていなかったら（デフォルトで""が入っている）、押せないようにする
+                        ///タイトルとコメントに何も入力されていなかったら（デフォルトで""が入っている）、押せないようにする
                         title.isEmpty || comment.isEmpty
                             ? null
                             : () async {
@@ -280,33 +272,6 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
                     },
                   ),
                 ),
-                // Padding(
-                //   padding: const EdgeInsets.all(12),
-                //   child: Container(
-                //     height: 50,
-                //     color: Colors.white,
-                //     child: Center(
-                //       child: TextButton(
-                //         child: const Text(
-                //           "この予定を削除",
-                //           style: TextStyle(
-                //             color: Colors.red,
-                //           ),
-                //         ),
-                //         onPressed: () {
-                //           //TODO: showOkCancelAlertDialogの実装 driftでデータベースの削除
-                //           showOkCancelAlertDialog(
-                //             context: (context),
-                //             title: "予定の削除",
-                //             message: "本当にこの日の予定を削除しますか？",
-                //             okLabel: "削除",
-                //             cancelLabel: "キャンセル",
-                //           );
-                //         },
-                //       ),
-                //     ),
-                //   ),
-                // ),
               ],
             ),
           ),
@@ -347,8 +312,7 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
                           case true:
                             if (isEndTimeBefore || isEqual) {
                               setState(() {
-                                endTime =
-                                    startTime.add(const Duration(days: 1));
+                                endTime = startTime;
                               });
                             }
                             break;
