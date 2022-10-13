@@ -58,18 +58,25 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
           appBar: AppBar(
             automaticallyImplyLeading: false,
             leading: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () {
-                //TODO: showModalActionSheetの実装
-                Navigator.popUntil(context, ModalRoute.withName("/"));
-                // showModalActionSheet(
-                //    context: (context),
-                //    message: "編集を破棄",
-                //    title: "編集を破棄",
-                //    cancelLabel: "キャンセル",
-                //  );
-              },
-            ),
+                icon: const Icon(Icons.close),
+                onPressed: eventValue.isUpdated
+                    ? () async {
+                        final result = await showModalActionSheet<String>(
+                          context: context,
+                          actions: [
+                            const SheetAction(
+                              label: '編集を破棄',
+                              key: 'dispose',
+                            ),
+                          ],
+                        );
+                        if (result == 'dispose') {
+                          Navigator.popUntil(context, ModalRoute.withName("/"));
+                        }
+                      }
+                    : () {
+                        Navigator.popUntil(context, ModalRoute.withName("/"));
+                      }),
             actions: [
               Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -289,17 +296,23 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                           ),
                         ),
                         onPressed: () async {
-                          dataBase.deleteEvent(eventValue.editEventData);
-                          await fetchDataBaseValue.fetchDataList();
-                          Navigator.popUntil(context, ModalRoute.withName("/"));
                           //TODO: showOkCancelAlertDialogの実装 driftでデータベースの削除
-                          // showOkCancelAlertDialog(
-                          //   context: (context),
-                          //   title: "予定の削除",
-                          //   message: "本当にこの日の予定を削除しますか？",
-                          //   okLabel: "削除",
-                          //   cancelLabel: "キャンセル",
-                          // );
+                          final result = await showOkCancelAlertDialog(
+                            context: (context),
+                            title: "予定の削除",
+                            message: "本当にこの日の予定を削除しますか？",
+                            okLabel: "削除",
+                            cancelLabel: "キャンセル",
+                          );
+                          if (result == OkCancelResult.ok) {
+                            ///指定されているデータの削除
+                            dataBase.deleteEvent(eventValue.editEventData);
+
+                            ///データの更新
+                            await fetchDataBaseValue.fetchDataList();
+                            Navigator.popUntil(
+                                context, ModalRoute.withName("/"));
+                          }
                         },
                       ),
                     ),

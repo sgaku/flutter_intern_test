@@ -169,12 +169,67 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                   ),
                 );
               },
+              outsideBuilder:  (_, day, focusedDay) {
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: EdgeInsets.zero,
+                  alignment: Alignment.center,
+                  child: Text(
+                    day.day.toString(),
+                    style: const TextStyle(
+                      color : Color(0xFFAEAEAE),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              },
               defaultBuilder: (_, day, focusedDay) {
-                return Center(
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: EdgeInsets.zero,
+                  alignment: Alignment.center,
                   child: Text(
                     day.day.toString(),
                     style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
                       color: _textColor(day),
+                    ),
+                  ),
+                );
+              },
+              selectedBuilder: (_, day, focusedDay) {
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.all(9),
+                  alignment: Alignment.center,
+                  decoration: _decorationColor(day),
+                  child: Text(
+                    day.day.toString(),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: _textColor(day),
+                    ),
+                  ),
+                );
+              },
+              todayBuilder: (_, day, focusedDay) {
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.all(9),
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.blue,
+                  ),
+                  child: Text(
+                    day.day.toString(),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
                     ),
                   ),
                 );
@@ -191,14 +246,13 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                   fontSize: 7,
                 )),
             calendarStyle: const CalendarStyle(
-                todayDecoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.blue,
-                ),
-                selectedDecoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.red,
-                )),
+              markersMaxCount: 1,
+              markerMargin:EdgeInsets.only(top: 3) ,
+              markerSize: 7,
+              todayDecoration: BoxDecoration(
+                color: Colors.transparent,
+              ),
+            ),
           ),
           Expanded(
             child: Container(
@@ -218,7 +272,23 @@ class CalendarViewState extends ConsumerState<CalendarView> {
     if (day.weekday == DateTime.saturday) {
       return Colors.blue[600]!;
     }
+    if (day.day == DateTime.now().day) {
+      return Colors.white;
+    }
     return defaultTextColor;
+  }
+
+  BoxDecoration _decorationColor(DateTime day) {
+    if (day.day == DateTime.now().day) {
+      return const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.blue,
+      );
+    }
+    return const BoxDecoration(
+      shape: BoxShape.circle,
+      color: Colors.transparent,
+    );
   }
 
   ///今表示されている日付と、datePickerで選択した日付を比べて、そこから何ページアニメーションする必要があるかをintで返す
