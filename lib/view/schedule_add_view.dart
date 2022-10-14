@@ -1,4 +1,5 @@
 import 'package:calendar_sample/view/calendar_view.dart';
+import 'package:calendar_sample/common/schedule_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,7 +36,7 @@ class ScheduleDetailState extends ConsumerState<AddScheduleView> {
 
   DateFormat dateFormatForDateAndTime = DateFormat('yyyy-MM-dd HH:mm');
   DateFormat dateFormatForDate = DateFormat('yyyy-MM-dd');
-  var uuid = Uuid();
+  var uuid = const Uuid();
 
   @override
   void initState() {
@@ -117,26 +118,14 @@ class ScheduleDetailState extends ConsumerState<AddScheduleView> {
           body: Center(
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: TextFormField(
-                    initialValue: "",
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white)),
-                      filled: true,
-                      fillColor: Colors.white,
-                      hintText: "タイトルを入力してください",
-                      border: OutlineInputBorder(),
-                    ),
+                ScheduleTextField(
+                    hintText: 'タイトルを入力してください',
                     onChanged: (text) {
                       setState(() {
                         title = text;
                       });
                     },
-                  ),
-                ),
+                    maxLine: 1),
                 Padding(
                     padding: const EdgeInsets.only(
                         top: 12, bottom: 1, left: 12, right: 12),
@@ -148,58 +137,53 @@ class ScheduleDetailState extends ConsumerState<AddScheduleView> {
                               setState(() {
                                 isAllDay = value;
                               });
-                            }))
-                    // const Text("開始"),
-
-                    ),
+                            }))),
                 Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
-                    child: ScheduleConfigCell(
-                        leading: const Text("開始"),
-                        trailing: TextButton(
-                          style: TextButton.styleFrom(
-                              foregroundColor: Colors.black),
-                          child: Text(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
+                  child: ScheduleConfigCell(
+                      leading: const Text("開始"),
+                      trailing: TextButton(
+                        style:
+                            TextButton.styleFrom(foregroundColor: Colors.black),
+                        child: Text(
 
-                              ///終日だったら日付のみ、そうでなければ日付と時間を表示
-                              isAllDay
-                                  ? dateFormatForDate.format(startTime)
-                                  : dateFormatForDateAndTime.format(startTime)),
-                          onPressed: () {
-                            int initialMinute = startTime.minute;
-                            if (initialMinute % 15 != 0) {
-                              initialMinute =
-                                  initialMinute - initialMinute % 15 + 15;
-                            }
-                            _showCupertinoPicker(
-                              CupertinoDatePicker(
-                                minuteInterval: 15,
-                                initialDateTime: DateTime(
-                                    startTime.year,
-                                    startTime.month,
-                                    startTime.day,
-                                    startTime.hour,
-                                    initialMinute),
-                                mode:
+                            ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                            isAllDay
+                                ? dateFormatForDate.format(startTime)
+                                : dateFormatForDateAndTime.format(startTime)),
+                        onPressed: () {
+                          int initialMinute = startTime.minute;
+                          if (initialMinute % 15 != 0) {
+                            initialMinute =
+                                initialMinute - initialMinute % 15 + 15;
+                          }
+                          _showCupertinoPicker(
+                            CupertinoDatePicker(
+                              minuteInterval: 15,
+                              initialDateTime: DateTime(
+                                  startTime.year,
+                                  startTime.month,
+                                  startTime.day,
+                                  startTime.hour,
+                                  initialMinute),
+                              mode:
 
-                                    ///終日だったら日付のみ、そうでなければ日付と時間を表示
-                                    isAllDay
-                                        ? CupertinoDatePickerMode.date
-                                        : CupertinoDatePickerMode.dateAndTime,
-                                use24hFormat: true,
-                                onDateTimeChanged: (dateTime) {
-                                  setState(() {
-                                    startTime = dateTime;
-                                  });
-                                },
-                              ),
-                            );
-                          },
-                        ))
-                    // const Text("開始"),
-
-                    ),
+                                  ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                                  isAllDay
+                                      ? CupertinoDatePickerMode.date
+                                      : CupertinoDatePickerMode.dateAndTime,
+                              use24hFormat: true,
+                              onDateTimeChanged: (dateTime) {
+                                setState(() {
+                                  startTime = dateTime;
+                                });
+                              },
+                            ),
+                          );
+                        },
+                      )),
+                ),
                 Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
@@ -244,30 +228,15 @@ class ScheduleDetailState extends ConsumerState<AddScheduleView> {
                               ),
                             );
                           },
-                        ))
-                    // const Text("開始"),
-
-                    ),
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: TextFormField(
-                    initialValue: "",
-                    maxLines: null,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white)),
-                      filled: true,
-                      fillColor: Colors.white,
-                      hintText: "コメントを入力してください",
-                      border: OutlineInputBorder(),
-                    ),
+                        ))),
+                ScheduleTextField(
+                    hintText: 'コメントを入力してください',
                     onChanged: (text) {
                       setState(() {
                         comment = text;
                       });
                     },
-                  ),
-                ),
+                    maxLine: null)
               ],
             ),
           ),

@@ -1,5 +1,5 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:calendar_sample/main.dart';
+import 'package:calendar_sample/common/schedule_text_field.dart';
 import 'package:calendar_sample/repository/event_repository.dart';
 import 'package:calendar_sample/view/calendar_view.dart';
 import 'package:flutter/material.dart';
@@ -125,19 +125,8 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
           body: Center(
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: TextFormField(
-                    initialValue: eventValue.editEventData.title,
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white)),
-                      filled: true,
-                      fillColor: Colors.white,
-                      hintText: "タイトルを入力してください",
-                      border: OutlineInputBorder(),
-                    ),
+                ScheduleTextField(
+                    hintText: "タイトルを入力してください",
                     onChanged: (text) {
                       ref
                           .read(eventStateProvider(arg).notifier)
@@ -149,8 +138,7 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                         return state;
                       });
                     },
-                  ),
-                ),
+                    maxLine: 1),
                 Padding(
                     padding: const EdgeInsets.only(
                         top: 12, bottom: 1, left: 12, right: 12),
@@ -273,23 +261,9 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                               arg,
                             );
                           },
-                        ))
-                    // const Text("終了"),
-
-                    ),
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: TextFormField(
-                    initialValue: eventValue.editEventData.comment,
-                    maxLines: null,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white)),
-                      filled: true,
-                      fillColor: Colors.white,
-                      hintText: "コメントを入力してください",
-                      border: OutlineInputBorder(),
-                    ),
+                        ))),
+                ScheduleTextField(
+                    hintText: "コメントを入力してください",
                     onChanged: (text) {
                       ref
                           .read(eventStateProvider(arg).notifier)
@@ -301,8 +275,7 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                         return state;
                       });
                     },
-                  ),
-                ),
+                    maxLine: null),
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: Container(
