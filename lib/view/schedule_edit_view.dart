@@ -1,5 +1,5 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:calendar_sample/common/main.dart';
+import 'package:calendar_sample/main.dart';
 import 'package:calendar_sample/repository/event_repository.dart';
 import 'package:calendar_sample/view/calendar_view.dart';
 import 'package:flutter/material.dart';
@@ -7,24 +7,25 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import '../common/schedule_config_cell.dart';
 import '../model/event_data.dart';
 import 'edit_event_state_notifier.dart';
 
 ///イベントを編集する際に使うプロバイダー
-final eventDataProvider = StateNotifierProvider.autoDispose
-    .family<EditEventDataNotifier, EditEventDataState, EventData>(
+final eventStateProvider = StateNotifierProvider.autoDispose
+    .family<EditEventStateNotifier, EditEventDataState, EventData>(
         (ref, eventData) {
-  return EditEventDataNotifier(eventData);
+  return EditEventStateNotifier(eventData);
 });
 
-class EditSchedulePage extends ConsumerStatefulWidget {
-  const EditSchedulePage({super.key});
+class EditScheduleView extends ConsumerStatefulWidget {
+  const EditScheduleView({super.key});
 
   @override
   ScheduleDetailState createState() => ScheduleDetailState();
 }
 
-class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
+class ScheduleDetailState extends ConsumerState<EditScheduleView> {
   late FocusNode myFocusNode;
 
   DateTime startTime = DateTime.now();
@@ -45,7 +46,7 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
     final EventData arg =
         (ModalRoute.of(context)?.settings.arguments) as EventData;
 
-    final eventValue = ref.watch(eventDataProvider(arg));
+    final eventValue = ref.watch(eventStateProvider(arg));
     final fetchDataBaseValue = ref.watch(fetchDataBaseProvider);
 
     return Focus(
@@ -139,22 +140,35 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                     ),
                     onChanged: (text) {
                       ref
-                          .read(eventDataProvider(arg).notifier)
-                          .updateTitle(text);
+                          .read(eventStateProvider(arg).notifier)
+                          .update((state) {
+                        final updateTitle =
+                            state.editEventData.copyWith(title: text);
+                        state = state.copyWith(
+                            isUpdated: true, editEventData: updateTitle);
+                        return state;
+                      });
                     },
                   ),
                 ),
                 Padding(
                     padding: const EdgeInsets.only(
                         top: 12, bottom: 1, left: 12, right: 12),
-                    child: _ScheduleConfigCell(
+                    child: ScheduleConfigCell(
                         leading: const Text("終日"),
                         trailing: Switch(
                             value: eventValue.editEventData.isAllDay,
                             onChanged: (value) {
                               ref
-                                  .read(eventDataProvider(arg).notifier)
-                                  .updateIsAllDay(value);
+                                  .read(eventStateProvider(arg).notifier)
+                                  .update((state) {
+                                final updateIsAllDay = state.editEventData
+                                    .copyWith(isAllDay: value);
+                                state = state.copyWith(
+                                    isUpdated: true,
+                                    editEventData: updateIsAllDay);
+                                return state;
+                              });
                             }))
                     // const Text("終日"),
 
@@ -162,7 +176,7 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                 Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
-                    child: _ScheduleConfigCell(
+                    child: ScheduleConfigCell(
                         leading: const Text("開始"),
                         trailing: TextButton(
                           style: TextButton.styleFrom(
@@ -214,7 +228,7 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                 Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
-                    child: _ScheduleConfigCell(
+                    child: ScheduleConfigCell(
                         leading: const Text("終了"),
                         trailing: TextButton(
                           style: TextButton.styleFrom(
@@ -278,8 +292,14 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                     ),
                     onChanged: (text) {
                       ref
-                          .read(eventDataProvider(arg).notifier)
-                          .updateComment(text);
+                          .read(eventStateProvider(arg).notifier)
+                          .update((state) {
+                        final updateComment =
+                            state.editEventData.copyWith(comment: text);
+                        state = state.copyWith(
+                            isUpdated: true, editEventData: updateComment);
+                        return state;
+                      });
                     },
                   ),
                 ),
@@ -352,7 +372,7 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                       child: const Text("キャンセル")),
                   TextButton(
                       onPressed: () {
-                        final eventValue = ref.read(eventDataProvider(data));
+                        final eventValue = ref.read(eventStateProvider(data));
                         final isEndTimeBefore = endTime.isBefore(startTime);
                         final isEqual = endTime.microsecondsSinceEpoch ==
                             startTime.millisecondsSinceEpoch;
@@ -371,11 +391,23 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                         }
 
                         ref
-                            .read(eventDataProvider(data).notifier)
-                            .updateStartTime(startTime);
+                            .read(eventStateProvider(data).notifier)
+                            .update((state) {
+                          final updateStartTime = state.editEventData
+                              .copyWith(startTime: startTime);
+                          state = state.copyWith(
+                              isUpdated: true, editEventData: updateStartTime);
+                          return state;
+                        });
                         ref
-                            .read(eventDataProvider(data).notifier)
-                            .updateEndTime(endTime);
+                            .read(eventStateProvider(data).notifier)
+                            .update((state) {
+                          final updateEndTime =
+                              state.editEventData.copyWith(endTime: endTime);
+                          state = state.copyWith(
+                              isUpdated: true, editEventData: updateEndTime);
+                          return state;
+                        });
 
                         Navigator.pop(context);
                       },
@@ -384,33 +416,6 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
               ),
             ),
             Expanded(child: SafeArea(top: false, child: child)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ScheduleConfigCell extends StatelessWidget {
-  const _ScheduleConfigCell(
-      {Key? key, required this.leading, required this.trailing})
-      : super(key: key);
-
-  final Widget leading;
-  final Widget trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 50,
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            leading,
-            trailing,
           ],
         ),
       ),

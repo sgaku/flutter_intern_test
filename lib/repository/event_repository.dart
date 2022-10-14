@@ -7,10 +7,11 @@ import '../model/event_data.dart';
 final eventRepositoryProvider = Provider((ref) => EventRepository(ref));
 
 class EventRepository {
-  EventRepository(this.ref);
+  EventRepository(Ref ref) {
+    dataBase = ref.read(myDataBaseProvider);
+  }
 
-  final Ref ref;
-  final dataBase = MyDatabase();
+  late final MyDatabase dataBase;
 
   Future<List<Event>> get allEventsData =>
       dataBase.select(dataBase.events).get();

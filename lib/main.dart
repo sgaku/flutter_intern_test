@@ -1,7 +1,7 @@
 import 'package:calendar_sample/service/event_db.dart';
 import 'package:calendar_sample/view/calendar_view.dart';
-import 'package:calendar_sample/view/schedule_add.dart';
-import 'package:calendar_sample/view/schedule_edit.dart';
+import 'package:calendar_sample/view/schedule_add_view.dart';
+import 'package:calendar_sample/view/schedule_edit_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -41,8 +41,8 @@ class MyApp extends StatelessWidget {
       // home: const CalendarView(),
       routes: {
         '/': (context) => const CalendarView(),
-        'addSchedule': (context) => const AddSchedulePage(),
-        'editSchedule': (context) => const EditSchedulePage(),
+        'addSchedule': (context) => const AddScheduleView(),
+        'editSchedule': (context) => const EditScheduleView(),
       },
     );
   }

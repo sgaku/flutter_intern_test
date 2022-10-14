@@ -1,4 +1,6 @@
-import 'package:calendar_sample/model/event_data.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'event_table.dart';
 import 'package:drift/drift.dart';
 import 'dart:io';
 import 'package:drift/native.dart';
@@ -7,21 +9,7 @@ import 'package:path/path.dart' as p;
 
 part 'event_db.g.dart';
 
-class Events extends Table {
-  TextColumn get id => text()();
-
-  DateTimeColumn get selectedDate => dateTime()();
-
-  TextColumn get title => text()();
-
-  BoolColumn get isAllDay => boolean()();
-
-  DateTimeColumn get startDateTime => dateTime()();
-
-  DateTimeColumn get endDateTime => dateTime()();
-
-  TextColumn get comment => text()();
-}
+final myDataBaseProvider = Provider((ref) => MyDatabase());
 
 @DriftDatabase(tables: [Events])
 class MyDatabase extends _$MyDatabase {

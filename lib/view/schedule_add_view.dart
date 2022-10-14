@@ -5,24 +5,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
+import '../common/schedule_config_cell.dart';
 import 'add_event_state_notifier.dart';
 import '../model/event_data.dart';
 
 ///イベントを追加する際に使うプロバイダー
-final eventDataProvider =
-    StateNotifierProvider.autoDispose<AddEventDataNotifier, AddEventDataState>(
+final eventStateProvider =
+    StateNotifierProvider.autoDispose<AddEventStateNotifier, AddEventDataState>(
         (ref) {
-  return AddEventDataNotifier(ref);
+  return AddEventStateNotifier(ref);
 });
 
-class AddSchedulePage extends ConsumerStatefulWidget {
-  const AddSchedulePage({super.key});
+class AddScheduleView extends ConsumerStatefulWidget {
+  const AddScheduleView({super.key});
 
   @override
   ScheduleDetailState createState() => ScheduleDetailState();
 }
 
-class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
+class ScheduleDetailState extends ConsumerState<AddScheduleView> {
   late FocusNode myFocusNode;
 
   ///代入するデータのパラメータ（stateNotifierに入れるための変数）
@@ -82,7 +83,7 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
                                     endTime: endTime,
                                     comment: comment);
                                 ref
-                                    .read(eventDataProvider.notifier)
+                                    .read(eventStateProvider.notifier)
                                     .addEvents(data);
 
                                 ///eventLoaderに表示するデータを更新
@@ -139,7 +140,7 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
                 Padding(
                     padding: const EdgeInsets.only(
                         top: 12, bottom: 1, left: 12, right: 12),
-                    child: _ScheduleConfigCell(
+                    child: ScheduleConfigCell(
                         leading: const Text("開始"),
                         trailing: Switch(
                             value: isAllDay,
@@ -154,7 +155,7 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
                 Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
-                    child: _ScheduleConfigCell(
+                    child: ScheduleConfigCell(
                         leading: const Text("開始"),
                         trailing: TextButton(
                           style: TextButton.styleFrom(
@@ -202,7 +203,7 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
                 Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
-                    child: _ScheduleConfigCell(
+                    child: ScheduleConfigCell(
                         leading: const Text("開始"),
                         trailing: TextButton(
                           style: TextButton.styleFrom(
@@ -328,33 +329,6 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
               ),
             ),
             Expanded(child: SafeArea(top: false, child: child)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ScheduleConfigCell extends StatelessWidget {
-  const _ScheduleConfigCell(
-      {Key? key, required this.leading, required this.trailing})
-      : super(key: key);
-
-  final Widget leading;
-  final Widget trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 50,
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            leading,
-            trailing,
           ],
         ),
       ),
