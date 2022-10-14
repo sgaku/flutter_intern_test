@@ -1,5 +1,5 @@
-import 'package:calendar_sample/model/event_data.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../model/edit_event_data_state.dart';
 
 class EditEventStateNotifier extends StateNotifier<EditEventDataState> {
   EditEventStateNotifier(initialData)

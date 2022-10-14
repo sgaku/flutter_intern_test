@@ -1,4 +1,4 @@
-import 'package:calendar_sample/service/event_db.dart';
+import 'package:calendar_sample/service/my_database.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

@@ -1,13 +1,10 @@
-import 'package:calendar_sample/service/event_db.dart';
-import 'package:calendar_sample/view/calendar_view.dart';
-import 'package:calendar_sample/view/schedule_add_view.dart';
-import 'package:calendar_sample/view/schedule_edit_view.dart';
+import 'package:calendar_sample/view/calendar/calendar_view.dart';
+import 'package:calendar_sample/view/schedule_add/schedule_add_view.dart';
+import 'package:calendar_sample/view/schedule_edit/schedule_edit_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-// late MyDatabase dataBase;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

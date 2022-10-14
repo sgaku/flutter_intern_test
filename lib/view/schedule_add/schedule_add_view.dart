@@ -1,17 +1,18 @@
-import 'package:calendar_sample/view/calendar_view.dart';
+import 'package:calendar_sample/view/calendar/calendar_view.dart';
 import 'package:calendar_sample/common/schedule_text_field.dart';
+import 'package:calendar_sample/view/event_state_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-
-import '../common/schedule_config_cell.dart';
+import '../../common/schedule_config_cell.dart';
+import '../../model/add_event_data_state.dart';
 import 'add_event_state_notifier.dart';
-import '../model/event_data.dart';
+import '../../model/event_data.dart';
 
 ///イベントを追加する際に使うプロバイダー
-final eventStateProvider =
+final addEventStateProvider =
     StateNotifierProvider.autoDispose<AddEventStateNotifier, AddEventDataState>(
         (ref) {
   return AddEventStateNotifier(ref);
@@ -40,6 +41,11 @@ class ScheduleDetailState extends ConsumerState<AddScheduleView> {
 
   @override
   void initState() {
+    final selectedDayValue = ref.read(selectedDayProvider);
+    startTime = DateTime(selectedDayValue.year, selectedDayValue.month,
+        selectedDayValue.day, startTime.hour, startTime.minute);
+    endTime = DateTime(selectedDayValue.year, selectedDayValue.month,
+        selectedDayValue.day, endTime.hour, endTime.minute);
     myFocusNode = FocusNode();
     super.initState();
   }
@@ -47,7 +53,6 @@ class ScheduleDetailState extends ConsumerState<AddScheduleView> {
   @override
   Widget build(BuildContext context) {
     final selectedValue = ref.watch(selectedDayProvider);
-    final fetchDataBaseValue = ref.watch(fetchDataBaseProvider);
 
     return Focus(
       focusNode: myFocusNode,
@@ -83,12 +88,14 @@ class ScheduleDetailState extends ConsumerState<AddScheduleView> {
                                     startTime: startTime,
                                     endTime: endTime,
                                     comment: comment);
-                                ref
-                                    .read(eventStateProvider.notifier)
+                                await ref
+                                    .read(addEventStateProvider.notifier)
                                     .addEvents(data);
 
                                 ///eventLoaderに表示するデータを更新
-                                await fetchDataBaseValue.fetchDataList();
+                                await ref
+                                    .read(eventStateProvider.notifier)
+                                    .fetchEventDataMap();
                                 Navigator.popUntil(
                                     context, ModalRoute.withName("/"));
                               },
@@ -119,6 +126,7 @@ class ScheduleDetailState extends ConsumerState<AddScheduleView> {
             child: Column(
               children: [
                 ScheduleTextField(
+                    initialValue: "",
                     hintText: 'タイトルを入力してください',
                     onChanged: (text) {
                       setState(() {
@@ -130,7 +138,7 @@ class ScheduleDetailState extends ConsumerState<AddScheduleView> {
                     padding: const EdgeInsets.only(
                         top: 12, bottom: 1, left: 12, right: 12),
                     child: ScheduleConfigCell(
-                        leading: const Text("開始"),
+                        leading: const Text("終日"),
                         trailing: Switch(
                             value: isAllDay,
                             onChanged: (value) {
@@ -188,7 +196,7 @@ class ScheduleDetailState extends ConsumerState<AddScheduleView> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
                     child: ScheduleConfigCell(
-                        leading: const Text("開始"),
+                        leading: const Text("終了"),
                         trailing: TextButton(
                           style: TextButton.styleFrom(
                               foregroundColor: Colors.black),
@@ -230,6 +238,7 @@ class ScheduleDetailState extends ConsumerState<AddScheduleView> {
                           },
                         ))),
                 ScheduleTextField(
+                    initialValue: "",
                     hintText: 'コメントを入力してください',
                     onChanged: (text) {
                       setState(() {

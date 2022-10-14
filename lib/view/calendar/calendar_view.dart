@@ -5,11 +5,10 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-import 'fetch_db.dart';
+import '../event_state_notifier.dart';
 
 final focusedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
 final selectedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
-final fetchDataBaseProvider = ChangeNotifierProvider((ref) => FetchDateBase(ref));
 
 class CalendarView extends ConsumerStatefulWidget {
   const CalendarView({super.key});
@@ -27,15 +26,14 @@ class CalendarViewState extends ConsumerState<CalendarView> {
 
     ///eventLoaderに表示するデータを更新
     Future(() async {
-      final fetchDataBaseValue = ref.read(fetchDataBaseProvider);
-      await fetchDataBaseValue.fetchDataList();
+      await ref.read(eventStateProvider.notifier).fetchEventDataMap();
     });
     super.initState();
   }
 
   List<EventData> _getEventsFromDay(DateTime date) {
-    final fetchDataBaseValue = ref.watch(fetchDataBaseProvider);
-    return fetchDataBaseValue.dataMap[date] ?? [];
+    final fetchEventValue = ref.watch(eventStateProvider);
+    return fetchEventValue.eventDataMap[date] ?? [];
   }
 
   @override
@@ -60,8 +58,11 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                       pageController.animateToPage(pageController.initialPage,
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeOut);
+
                       ///今日の日付が選択されているようにする
-                      ref.read(selectedDayProvider.notifier).update((state) => DateTime.now());
+                      ref
+                          .read(selectedDayProvider.notifier)
+                          .update((state) => DateTime.now());
                     },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.black,
@@ -79,7 +80,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
-                      "${focusedDayValue.year}年${ focusedDayValue.month}月",
+                      "${focusedDayValue.year}年${focusedDayValue.month}月",
                       style: const TextStyle(
                           fontSize: 18, fontWeight: FontWeight.w500),
                     ),
@@ -207,14 +208,14 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                 );
               },
             ),
-            daysOfWeekStyle: DaysOfWeekStyle(
+            daysOfWeekStyle: const DaysOfWeekStyle(
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 240, 238, 237),
+                  color: Color.fromARGB(255, 240, 238, 237),
                 ),
-                weekdayStyle: const TextStyle(
+                weekdayStyle: TextStyle(
                   fontSize: 7,
                 ),
-                weekendStyle: const TextStyle(
+                weekendStyle: TextStyle(
                   fontSize: 7,
                 )),
             calendarStyle: const CalendarStyle(
@@ -239,18 +240,21 @@ class CalendarViewState extends ConsumerState<CalendarView> {
   Color _selectedDayColor(DateTime day, DateTime focusedDay) {
     var now = DateTime.now();
     const defaultTextColor = Colors.black87;
+    if (DateTime(day.year, day.month, day.day) ==
+        DateTime(now.year, now.month, now.day)) {
+      return Colors.white;
+    }
+    if (day.month != focusedDay.month) {
+      return const Color(0xFFAEAEAE);
+    }
+
     if (day.weekday == DateTime.sunday) {
       return Colors.red;
     }
     if (day.weekday == DateTime.saturday) {
       return Colors.blue[600]!;
     }
-    if (DateTime(day.month, day.day) == DateTime(now.month, now.day)) {
-      return Colors.white;
-    }
-    if (day.month != focusedDay.month) {
-      return const Color(0xFFAEAEAE);
-    }
+
     return defaultTextColor;
   }
 
@@ -267,12 +271,11 @@ class CalendarViewState extends ConsumerState<CalendarView> {
     );
   }
 
-
   ///今表示されている日付と、datePickerで選択した日付の月の差分を計算して、そこから何ページアニメーションする必要があるかをintで返す
   Future<int> _datePicker(BuildContext context) async {
     final focusedDayValue = ref.watch(focusedDayProvider);
     final DateTime? datePicked = await showDatePicker(
-      initialEntryMode: DatePickerEntryMode.calendarOnly,
+        initialEntryMode: DatePickerEntryMode.calendarOnly,
         context: context,
         initialDate: focusedDayValue,
         firstDate: DateTime(2018),
@@ -282,23 +285,36 @@ class CalendarViewState extends ConsumerState<CalendarView> {
       return 0;
     }
 
-        ///年が同じで月が違う時
-        if (datePicked.year == focusedDayValue.year &&
-            datePicked.month != focusedDayValue.month) {
-          return datePicked.month.toInt() - focusedDayValue.month.toInt();
-          ///月が同じで年が違う時
-        } else if (datePicked.month == focusedDayValue.month &&
-            datePicked.year != focusedDayValue.year) {
-          return (datePicked.year.toInt() - focusedDayValue.year.toInt()) * 12;
-          ///年と月両方違う時
-        } else if (datePicked.year != focusedDayValue.year &&
-            datePicked.month != focusedDayValue.month) {
-          var disY = datePicked.year.toInt() - focusedDayValue.year.toInt();
-          return (datePicked.month.toInt() - focusedDayValue.month.toInt()) +
-              disY * 12;
-        }
+    ///年が同じで月が違う時
+    if (datePicked.year == focusedDayValue.year &&
+        datePicked.month != focusedDayValue.month) {
+      return datePicked.month.toInt() - focusedDayValue.month.toInt();
+
+      ///月が同じで年が違う時
+    } else if (datePicked.month == focusedDayValue.month &&
+        datePicked.year != focusedDayValue.year) {
+      return (datePicked.year.toInt() - focusedDayValue.year.toInt()) * 12;
+
+      ///年と月両方違う時
+    } else if (datePicked.year != focusedDayValue.year &&
+        datePicked.month != focusedDayValue.month) {
+      var disY = datePicked.year.toInt() - focusedDayValue.year.toInt();
+      return (datePicked.month.toInt() - focusedDayValue.month.toInt()) +
+          disY * 12;
+    }
     return 0;
   }
+}
+
+Color _textColor(DateTime day) {
+  const defaultTextColor = Colors.black87;
+  if (day.weekday == DateTime.sunday) {
+    return Colors.red;
+  }
+  if (day.weekday == DateTime.saturday) {
+    return Colors.blue[600]!;
+  }
+  return defaultTextColor;
 }
 
 class DetailDialog extends ConsumerWidget {
@@ -310,9 +326,10 @@ class DetailDialog extends ConsumerWidget {
     final dateFormatForDayOfWeek = DateFormat.E('ja');
     DateFormat dateFormatForDate = DateFormat('yyyy/MM/dd');
     final selectedValue = ref.watch(selectedDayProvider);
+
     ///選択した日付のイベントを取得
-    final selectedEvents = ref.watch(
-        fetchDataBaseProvider.select((value) => value.dataMap[selectedValue]));
+    final selectedEvents = ref.watch(eventStateProvider
+        .select((value) => value.eventDataMap[selectedValue]));
     return AlertDialog(
       insetPadding: const EdgeInsets.all(8),
       content: SizedBox(
@@ -433,15 +450,4 @@ class DetailDialog extends ConsumerWidget {
       ),
     );
   }
-}
-
-Color _textColor(DateTime day) {
-  const defaultTextColor = Colors.black87;
-  if (day.weekday == DateTime.sunday) {
-    return Colors.red;
-  }
-  if (day.weekday == DateTime.saturday) {
-    return Colors.blue[600]!;
-  }
-  return defaultTextColor;
 }

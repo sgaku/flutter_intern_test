@@ -1,18 +1,19 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:calendar_sample/common/schedule_text_field.dart';
 import 'package:calendar_sample/repository/event_repository.dart';
-import 'package:calendar_sample/view/calendar_view.dart';
+import 'package:calendar_sample/view/schedule_edit/edit_event_state_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-import '../common/schedule_config_cell.dart';
-import '../model/event_data.dart';
-import 'edit_event_state_notifier.dart';
+import '../../common/schedule_config_cell.dart';
+import '../../model/edit_event_data_state.dart';
+import '../../model/event_data.dart';
+import 'package:calendar_sample/view/event_state_notifier.dart';
 
 ///イベントを編集する際に使うプロバイダー
-final eventStateProvider = StateNotifierProvider.autoDispose
+final editEventStateProvider = StateNotifierProvider.autoDispose
     .family<EditEventStateNotifier, EditEventDataState, EventData>(
         (ref, eventData) {
   return EditEventStateNotifier(eventData);
@@ -46,8 +47,7 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
     final EventData arg =
         (ModalRoute.of(context)?.settings.arguments) as EventData;
 
-    final eventValue = ref.watch(eventStateProvider(arg));
-    final fetchDataBaseValue = ref.watch(fetchDataBaseProvider);
+    final eventValue = ref.watch(editEventStateProvider(arg));
 
     return Focus(
       focusNode: myFocusNode,
@@ -94,7 +94,9 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                                   .updateEvent(eventValue.editEventData);
 
                               ///eventLoaderに表示するデータを更新
-                              await fetchDataBaseValue.fetchDataList();
+                              await ref
+                                  .read(eventStateProvider.notifier)
+                                  .fetchEventDataMap();
                               Navigator.popUntil(
                                   context, ModalRoute.withName("/"));
                             },
@@ -126,10 +128,11 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
             child: Column(
               children: [
                 ScheduleTextField(
+                    initialValue: eventValue.editEventData.title,
                     hintText: "タイトルを入力してください",
                     onChanged: (text) {
                       ref
-                          .read(eventStateProvider(arg).notifier)
+                          .read(editEventStateProvider(arg).notifier)
                           .update((state) {
                         final updateTitle =
                             state.editEventData.copyWith(title: text);
@@ -148,7 +151,7 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                             value: eventValue.editEventData.isAllDay,
                             onChanged: (value) {
                               ref
-                                  .read(eventStateProvider(arg).notifier)
+                                  .read(editEventStateProvider(arg).notifier)
                                   .update((state) {
                                 final updateIsAllDay = state.editEventData
                                     .copyWith(isAllDay: value);
@@ -209,10 +212,7 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                               arg,
                             );
                           },
-                        ))
-                    // const Text("開始"),
-
-                    ),
+                        ))),
                 Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
@@ -263,10 +263,11 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                           },
                         ))),
                 ScheduleTextField(
+                    initialValue: eventValue.editEventData.comment,
                     hintText: "コメントを入力してください",
                     onChanged: (text) {
                       ref
-                          .read(eventStateProvider(arg).notifier)
+                          .read(editEventStateProvider(arg).notifier)
                           .update((state) {
                         final updateComment =
                             state.editEventData.copyWith(comment: text);
@@ -304,7 +305,9 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                                 .deleteEvent(eventValue.editEventData);
 
                             ///データの更新
-                            await fetchDataBaseValue.fetchDataList();
+                            await ref
+                                .read(eventStateProvider.notifier)
+                                .fetchEventDataMap();
                             Navigator.popUntil(
                                 context, ModalRoute.withName("/"));
                           }
@@ -345,7 +348,8 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                       child: const Text("キャンセル")),
                   TextButton(
                       onPressed: () {
-                        final eventValue = ref.read(eventStateProvider(data));
+                        final eventValue =
+                            ref.read(editEventStateProvider(data));
                         final isEndTimeBefore = endTime.isBefore(startTime);
                         final isEqual = endTime.microsecondsSinceEpoch ==
                             startTime.millisecondsSinceEpoch;
@@ -364,7 +368,7 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                         }
 
                         ref
-                            .read(eventStateProvider(data).notifier)
+                            .read(editEventStateProvider(data).notifier)
                             .update((state) {
                           final updateStartTime = state.editEventData
                               .copyWith(startTime: startTime);
@@ -373,7 +377,7 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                           return state;
                         });
                         ref
-                            .read(eventStateProvider(data).notifier)
+                            .read(editEventStateProvider(data).notifier)
                             .update((state) {
                           final updateEndTime =
                               state.editEventData.copyWith(endTime: endTime);

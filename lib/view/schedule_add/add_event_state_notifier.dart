@@ -1,7 +1,8 @@
-import 'package:calendar_sample/main.dart';
 import 'package:calendar_sample/model/event_data.dart';
 import 'package:calendar_sample/repository/event_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../model/add_event_data_state.dart';
 
 class AddEventStateNotifier extends StateNotifier<AddEventDataState> {
   AddEventStateNotifier(this.ref)
@@ -10,9 +11,8 @@ class AddEventStateNotifier extends StateNotifier<AddEventDataState> {
   final Ref ref;
 
   ///値の追加
-  addEvents(EventData data) {
+  Future<void> addEvents(EventData data) async {
     state = state.copyWith(addEventData: data);
-    //TODO:driftにデータを追加
-    ref.read(eventRepositoryProvider).addEvent(data);
+    await ref.read(eventRepositoryProvider).addEvent(data);
   }
 }

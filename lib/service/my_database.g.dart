@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'event_db.dart';
+part of 'my_database.dart';
 
 // **************************************************************************
 // DriftDatabaseGenerator
