@@ -1,13 +1,13 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:calendar_sample/common/main.dart';
-import 'package:calendar_sample/model/edit_event_provider.dart';
 import 'package:calendar_sample/view/calendar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-import '../repository/event_data.dart';
+import '../model/event_data.dart';
+import 'edit_event_state_notifier.dart';
 
 ///イベントを編集する際に使うプロバイダー
 final eventDataProvider = StateNotifierProvider.autoDispose

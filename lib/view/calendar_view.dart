@@ -1,11 +1,11 @@
-import 'package:calendar_sample/repository/event_data.dart';
+import 'package:calendar_sample/model/event_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-import '../model/fetch_db.dart';
+import 'fetch_db.dart';
 
 final focusedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
 final selectedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());

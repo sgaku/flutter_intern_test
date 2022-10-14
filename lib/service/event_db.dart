@@ -1,4 +1,4 @@
-import 'package:calendar_sample/repository/event_data.dart';
+import 'package:calendar_sample/model/event_data.dart';
 import 'package:drift/drift.dart';
 import 'dart:io';
 import 'package:drift/native.dart';

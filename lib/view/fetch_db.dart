@@ -1,5 +1,5 @@
 import 'package:calendar_sample/common/main.dart';
-import 'package:calendar_sample/repository/event_data.dart';
+import 'package:calendar_sample/model/event_data.dart';
 
 import 'package:flutter/widgets.dart';
 

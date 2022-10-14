@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
-import '../model/add_event_provider.dart';
-import '../repository/event_data.dart';
+import 'add_event_state_notifier.dart';
+import '../model/event_data.dart';
 
 ///イベントを追加する際に使うプロバイダー
 final eventDataProvider =

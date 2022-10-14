@@ -5,19 +5,17 @@ part 'event_data.freezed.dart';
 @freezed
 class EditEventDataState with _$EditEventDataState {
   const factory EditEventDataState({
-    @Default(false)bool isUpdated,
+    @Default(false) bool isUpdated,
     required EventData editEventData,
   }) = _EditEventDataState;
 }
 
 @freezed
-class AddEventDataState with _$AddEventDataState{
+class AddEventDataState with _$AddEventDataState {
   const factory AddEventDataState({
     required EventData? addEventData,
-}) = _AddEventDataState;
+  }) = _AddEventDataState;
 }
-
-
 
 @freezed
 class EventData with _$EventData {
