@@ -8,7 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../model/add_event_provider.dart';
 import '../repository/event_data.dart';
 
-//provider
+///イベントを追加する際に使うプロバイダー
 final eventDataProvider =
     StateNotifierProvider.autoDispose<AddEventDataNotifier, AddEventDataState>(
         (ref) {
@@ -32,8 +32,8 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
   DateTime endTime = DateTime.now();
   String comment = "";
 
-  DateFormat dateAndTime = DateFormat('yyyy-MM-dd HH:mm');
-  DateFormat date = DateFormat('yyyy-MM-dd');
+  DateFormat dateFormatForDateAndTime = DateFormat('yyyy-MM-dd HH:mm');
+  DateFormat dateFormatForDate = DateFormat('yyyy-MM-dd');
   var uuid = Uuid();
 
   @override
@@ -44,9 +44,7 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
 
   @override
   Widget build(BuildContext context) {
-    //selectedDayのプロバイダー
     final selectedValue = ref.watch(selectedDayProvider);
-    //データベースを取ってくるプロバイダー
     final fetchDataBaseValue = ref.watch(fetchDataBaseProvider);
 
     return Focus(
@@ -55,7 +53,7 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
         onTap: myFocusNode.requestFocus,
         child: Scaffold(
           resizeToAvoidBottomInset: false,
-          backgroundColor: Colors.blueGrey[50],
+          backgroundColor: const Color.fromARGB(255, 240, 238, 237),
           appBar: AppBar(
               automaticallyImplyLeading: false,
               leading: IconButton(
@@ -69,10 +67,12 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
                     onPressed:
-                        ///タイトルとコメントに何も入力されていなかったら（デフォルトで""が入っている）、押せないようにする
+
+                        ///タイトルとコメントに何も入力されていなかったら（デフォルトで""が入っている）非活性に
                         title.isEmpty || comment.isEmpty
                             ? null
                             : () async {
+                                ///EventDataクラスで状態管理しているため、そのクラスに格納する形でdriftに追加
                                 final data = EventData(
                                     id: uuid.v1(),
                                     selectedDate: selectedValue,
@@ -85,18 +85,28 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
                                     .read(eventDataProvider.notifier)
                                     .addEvents(data);
 
-                                //driftのデータを更新
+                                ///eventLoaderに表示するデータを更新
                                 await fetchDataBaseValue.fetchDataList();
                                 Navigator.popUntil(
                                     context, ModalRoute.withName("/"));
                               },
-
-                    ///もし既にデータがある場合は、updateする
-                    //TODO: アップデートの条件をなおす
-
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.white,
-                      onPrimary: Colors.black,
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                        (Set<MaterialState> states) {
+                          if (states.contains(MaterialState.disabled)) {
+                            return Colors.white;
+                          }
+                          return Colors.white;
+                        },
+                      ),
+                      foregroundColor: MaterialStateProperty.resolveWith<Color>(
+                        (Set<MaterialState> states) {
+                          if (states.contains(MaterialState.disabled)) {
+                            return const Color(0xFFAEAEAE);
+                          }
+                          return Colors.black;
+                        },
+                      ),
                     ),
                     child: const Text("保存"),
                   ),
@@ -127,131 +137,116 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(
-                      top: 12, bottom: 1, left: 12, right: 12),
-                  child: Container(
-                    height: 40,
-                    color: Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text("終日"),
-                          Switch(
-                              value: isAllDay,
-                              onChanged: (value) {
-                                setState(() {
-                                  isAllDay = value;
-                                });
-                              })
-                        ],
-                      ),
+                    padding: const EdgeInsets.only(
+                        top: 12, bottom: 1, left: 12, right: 12),
+                    child: _ScheduleConfigCell(
+                        leading: const Text("開始"),
+                        trailing: Switch(
+                            value: isAllDay,
+                            onChanged: (value) {
+                              setState(() {
+                                isAllDay = value;
+                              });
+                            }))
+                    // const Text("開始"),
+
                     ),
-                  ),
-                ),
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
-                  child: Container(
-                    height: 40,
-                    color: Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text("開始"),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                                foregroundColor: Colors.black),
-                            child: Text(isAllDay
-                                ? date.format(startTime)
-                                : dateAndTime.format(startTime)),
-                            onPressed: () {
-                              int initialMinute = startTime.minute;
-                              if (initialMinute % 15 != 0) {
-                                initialMinute =
-                                    initialMinute - initialMinute % 15 + 15;
-                              }
-                              _showCupertinoPicker(
-                                CupertinoDatePicker(
-                                  minuteInterval: 15,
-                                  initialDateTime: DateTime(
-                                      startTime.year,
-                                      startTime.month,
-                                      startTime.day,
-                                      startTime.hour,
-                                      initialMinute),
-                                  mode: isAllDay
-                                      ? CupertinoDatePickerMode.date
-                                      : CupertinoDatePickerMode.dateAndTime,
-                                  use24hFormat: true,
-                                  onDateTimeChanged: (dateTime) {
-                                    setState(() {
-                                      startTime = dateTime;
-                                    });
-                                  },
-                                ),
-                              );
-                            },
-                          )
-                        ],
-                      ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
+                    child: _ScheduleConfigCell(
+                        leading: const Text("開始"),
+                        trailing: TextButton(
+                          style: TextButton.styleFrom(
+                              foregroundColor: Colors.black),
+                          child: Text(
+
+                              ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                              isAllDay
+                                  ? dateFormatForDate.format(startTime)
+                                  : dateFormatForDateAndTime.format(startTime)),
+                          onPressed: () {
+                            int initialMinute = startTime.minute;
+                            if (initialMinute % 15 != 0) {
+                              initialMinute =
+                                  initialMinute - initialMinute % 15 + 15;
+                            }
+                            _showCupertinoPicker(
+                              CupertinoDatePicker(
+                                minuteInterval: 15,
+                                initialDateTime: DateTime(
+                                    startTime.year,
+                                    startTime.month,
+                                    startTime.day,
+                                    startTime.hour,
+                                    initialMinute),
+                                mode:
+
+                                    ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                                    isAllDay
+                                        ? CupertinoDatePickerMode.date
+                                        : CupertinoDatePickerMode.dateAndTime,
+                                use24hFormat: true,
+                                onDateTimeChanged: (dateTime) {
+                                  setState(() {
+                                    startTime = dateTime;
+                                  });
+                                },
+                              ),
+                            );
+                          },
+                        ))
+                    // const Text("開始"),
+
                     ),
-                  ),
-                ),
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
-                  child: Container(
-                    height: 40,
-                    color: Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text("終了"),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                                foregroundColor: Colors.black),
-                            child: Text(isAllDay
-                                ? date.format(endTime)
-                                : dateAndTime.format(endTime)),
-                            onPressed: () {
-                              int initialMinute = endTime.minute;
-                              if (initialMinute % 15 != 0) {
-                                initialMinute =
-                                    initialMinute - initialMinute % 15 + 15;
-                              }
-                              _showCupertinoPicker(
-                                CupertinoDatePicker(
-                                  minuteInterval: 15,
-                                  initialDateTime: DateTime(
-                                      endTime.year,
-                                      endTime.month,
-                                      endTime.day,
-                                      endTime.hour,
-                                      (initialMinute)),
-                                  mode: isAllDay
-                                      ? CupertinoDatePickerMode.date
-                                      : CupertinoDatePickerMode.dateAndTime,
-                                  use24hFormat: true,
-                                  onDateTimeChanged: (dateTime) {
-                                    setState(() {
-                                      endTime = dateTime;
-                                    });
-                                  },
-                                ),
-                              );
-                            },
-                          )
-                        ],
-                      ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
+                    child: _ScheduleConfigCell(
+                        leading: const Text("開始"),
+                        trailing: TextButton(
+                          style: TextButton.styleFrom(
+                              foregroundColor: Colors.black),
+                          child: Text(
+
+                              ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                              isAllDay
+                                  ? dateFormatForDate.format(endTime)
+                                  : dateFormatForDateAndTime.format(endTime)),
+                          onPressed: () {
+                            int initialMinute = endTime.minute;
+                            if (initialMinute % 15 != 0) {
+                              initialMinute =
+                                  initialMinute - initialMinute % 15 + 15;
+                            }
+                            _showCupertinoPicker(
+                              CupertinoDatePicker(
+                                minuteInterval: 15,
+                                initialDateTime: DateTime(
+                                    endTime.year,
+                                    endTime.month,
+                                    endTime.day,
+                                    endTime.hour,
+                                    (initialMinute)),
+                                mode:
+
+                                    ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                                    isAllDay
+                                        ? CupertinoDatePickerMode.date
+                                        : CupertinoDatePickerMode.dateAndTime,
+                                use24hFormat: true,
+                                onDateTimeChanged: (dateTime) {
+                                  setState(() {
+                                    endTime = dateTime;
+                                  });
+                                },
+                              ),
+                            );
+                          },
+                        ))
+                    // const Text("開始"),
+
                     ),
-                  ),
-                ),
                 Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: TextFormField(
@@ -333,6 +328,33 @@ class ScheduleDetailState extends ConsumerState<AddSchedulePage> {
               ),
             ),
             Expanded(child: SafeArea(top: false, child: child)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScheduleConfigCell extends StatelessWidget {
+  const _ScheduleConfigCell(
+      {Key? key, required this.leading, required this.trailing})
+      : super(key: key);
+
+  final Widget leading;
+  final Widget trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 50,
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            leading,
+            trailing,
           ],
         ),
       ),

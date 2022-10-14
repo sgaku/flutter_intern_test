@@ -9,7 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../repository/event_data.dart';
 
-//provider
+///イベントを編集する際に使うプロバイダー
 final eventDataProvider = StateNotifierProvider.autoDispose
     .family<EditEventDataNotifier, EditEventDataState, EventData>(
         (ref, eventData) {
@@ -28,8 +28,8 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
 
   DateTime startTime = DateTime.now();
   DateTime endTime = DateTime.now();
-  DateFormat dateAndTime = DateFormat('yyyy-MM-dd HH:mm');
-  DateFormat date = DateFormat('yyyy-MM-dd');
+  DateFormat dateFormatForDateAndTime = DateFormat('yyyy-MM-dd HH:mm');
+  DateFormat dateFormatForDate = DateFormat('yyyy-MM-dd');
   var uuid = Uuid();
 
   @override
@@ -40,12 +40,11 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
 
   @override
   Widget build(BuildContext context) {
+    ///日別予定一覧から選択したイベントを格納する変数
     final EventData arg =
         (ModalRoute.of(context)?.settings.arguments) as EventData;
 
     final eventValue = ref.watch(eventDataProvider(arg));
-
-    //データベースを取ってくるプロバイダー
     final fetchDataBaseValue = ref.watch(fetchDataBaseProvider);
 
     return Focus(
@@ -54,7 +53,7 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
         onTap: myFocusNode.requestFocus,
         child: Scaffold(
           resizeToAvoidBottomInset: false,
-          backgroundColor: Colors.blueGrey[50],
+          backgroundColor: const Color.fromARGB(255, 240, 238, 237),
           appBar: AppBar(
             automaticallyImplyLeading: false,
             leading: IconButton(
@@ -82,23 +81,36 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
                   onPressed:
-                      //タイトルとコメントに何も入力されていなかったら（デフォルトで""が入っている）、押せないようにする
+
+                      ///取得したイベントの情報が変化していなかったら非活性にする
                       !eventValue.isUpdated
                           ? null
-                          :
-
-                          ///もし既にデータがある場合は、updateする
-                          //TODO: アップデートの条件をなおす
-                          () async {
+                          : () async {
+                              ///更新したイベントをdriftに追加
                               dataBase.updateEvent(eventValue.editEventData);
-                              //driftのデータを更新
+
+                              ///eventLoaderに表示するデータを更新
                               await fetchDataBaseValue.fetchDataList();
                               Navigator.popUntil(
                                   context, ModalRoute.withName("/"));
                             },
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.white,
-                    onPrimary: Colors.black,
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                      (Set<MaterialState> states) {
+                        if (states.contains(MaterialState.disabled)) {
+                          return Colors.white;
+                        }
+                        return Colors.white;
+                      },
+                    ),
+                    foregroundColor: MaterialStateProperty.resolveWith<Color>(
+                      (Set<MaterialState> states) {
+                        if (states.contains(MaterialState.disabled)) {
+                          return const Color(0xFFAEAEAE);
+                        }
+                        return Colors.black;
+                      },
+                    ),
                   ),
                   child: const Text("保存"),
                 ),
@@ -130,138 +142,124 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(
-                      top: 12, bottom: 1, left: 12, right: 12),
-                  child: Container(
-                    height: 40,
-                    color: Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text("終日"),
-                          Switch(
-                              value: eventValue.editEventData.isAllDay,
-                              onChanged: (value) {
-                                ref
-                                    .read(eventDataProvider(arg).notifier)
-                                    .updateIsAllDay(value);
-                              })
-                        ],
-                      ),
+                    padding: const EdgeInsets.only(
+                        top: 12, bottom: 1, left: 12, right: 12),
+                    child: _ScheduleConfigCell(
+                        leading: const Text("終日"),
+                        trailing: Switch(
+                            value: eventValue.editEventData.isAllDay,
+                            onChanged: (value) {
+                              ref
+                                  .read(eventDataProvider(arg).notifier)
+                                  .updateIsAllDay(value);
+                            }))
+                    // const Text("終日"),
+
                     ),
-                  ),
-                ),
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
-                  child: Container(
-                    height: 40,
-                    color: Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text("開始"),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                                foregroundColor: Colors.black),
-                            child: Text(eventValue.editEventData.isAllDay
-                                ? date
-                                    .format(eventValue.editEventData.startTime)
-                                : dateAndTime.format(
-                                    eventValue.editEventData.startTime)),
-                            onPressed: () {
-                              int initialMinute =
-                                  eventValue.editEventData.startTime.minute;
-                              if (initialMinute % 15 != 0) {
-                                initialMinute =
-                                    initialMinute - initialMinute % 15 + 15;
-                              }
-                              _showCupertinoPicker(
-                                CupertinoDatePicker(
-                                  minuteInterval: 15,
-                                  initialDateTime: DateTime(
-                                      eventValue.editEventData.startTime.year,
-                                      eventValue.editEventData.startTime.month,
-                                      eventValue.editEventData.startTime.day,
-                                      eventValue.editEventData.startTime.hour,
-                                      initialMinute),
-                                  mode: eventValue.editEventData.isAllDay
-                                      ? CupertinoDatePickerMode.date
-                                      : CupertinoDatePickerMode.dateAndTime,
-                                  use24hFormat: true,
-                                  onDateTimeChanged: (dateTime) {
-                                    setState(() {
-                                      startTime = dateTime;
-                                    });
-                                  },
-                                ),
-                                arg,
-                              );
-                            },
-                          )
-                        ],
-                      ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
+                    child: _ScheduleConfigCell(
+                        leading: const Text("開始"),
+                        trailing: TextButton(
+                          style: TextButton.styleFrom(
+                              foregroundColor: Colors.black),
+                          child: Text(
+
+                              ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                              eventValue.editEventData.isAllDay
+                                  ? dateFormatForDate.format(
+                                      eventValue.editEventData.startTime)
+                                  : dateFormatForDateAndTime.format(
+                                      eventValue.editEventData.startTime)),
+                          onPressed: () {
+                            int initialMinute =
+                                eventValue.editEventData.startTime.minute;
+                            if (initialMinute % 15 != 0) {
+                              initialMinute =
+                                  initialMinute - initialMinute % 15 + 15;
+                            }
+                            _showCupertinoPicker(
+                              CupertinoDatePicker(
+                                minuteInterval: 15,
+                                initialDateTime: DateTime(
+                                    eventValue.editEventData.startTime.year,
+                                    eventValue.editEventData.startTime.month,
+                                    eventValue.editEventData.startTime.day,
+                                    eventValue.editEventData.startTime.hour,
+                                    initialMinute),
+                                mode:
+
+                                    ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                                    eventValue.editEventData.isAllDay
+                                        ? CupertinoDatePickerMode.date
+                                        : CupertinoDatePickerMode.dateAndTime,
+                                use24hFormat: true,
+                                onDateTimeChanged: (dateTime) {
+                                  setState(() {
+                                    startTime = dateTime;
+                                  });
+                                },
+                              ),
+                              arg,
+                            );
+                          },
+                        ))
+                    // const Text("開始"),
+
                     ),
-                  ),
-                ),
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
-                  child: Container(
-                    height: 40,
-                    color: Colors.white,
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text("終了"),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                                foregroundColor: Colors.black),
-                            child: Text(eventValue.editEventData.isAllDay
-                                ? date.format(eventValue.editEventData.endTime)
-                                : dateAndTime
-                                    .format(eventValue.editEventData.endTime)),
-                            onPressed: () {
-                              int initialMinute =
-                                  eventValue.editEventData.endTime.minute;
-                              if (initialMinute % 15 != 0) {
-                                initialMinute =
-                                    initialMinute - initialMinute % 15 + 15;
-                              }
-                              _showCupertinoPicker(
-                                CupertinoDatePicker(
-                                  minuteInterval: 15,
-                                  initialDateTime: DateTime(
-                                      eventValue.editEventData.endTime.year,
-                                      eventValue.editEventData.endTime.month,
-                                      eventValue.editEventData.endTime.day,
-                                      eventValue.editEventData.endTime.hour,
-                                      initialMinute),
-                                  mode: eventValue.editEventData.isAllDay
-                                      ? CupertinoDatePickerMode.date
-                                      : CupertinoDatePickerMode.dateAndTime,
-                                  use24hFormat: true,
-                                  onDateTimeChanged: (dateTime) {
-                                    setState(() {
-                                      endTime = dateTime;
-                                    });
-                                  },
-                                ),
-                                arg,
-                              );
-                            },
-                          )
-                        ],
-                      ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
+                    child: _ScheduleConfigCell(
+                        leading: const Text("終了"),
+                        trailing: TextButton(
+                          style: TextButton.styleFrom(
+                              foregroundColor: Colors.black),
+                          child: Text(
+
+                              ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                              eventValue.editEventData.isAllDay
+                                  ? dateFormatForDate
+                                      .format(eventValue.editEventData.endTime)
+                                  : dateFormatForDateAndTime.format(
+                                      eventValue.editEventData.endTime)),
+                          onPressed: () {
+                            int initialMinute =
+                                eventValue.editEventData.endTime.minute;
+                            if (initialMinute % 15 != 0) {
+                              initialMinute =
+                                  initialMinute - initialMinute % 15 + 15;
+                            }
+                            _showCupertinoPicker(
+                              CupertinoDatePicker(
+                                minuteInterval: 15,
+                                initialDateTime: DateTime(
+                                    eventValue.editEventData.endTime.year,
+                                    eventValue.editEventData.endTime.month,
+                                    eventValue.editEventData.endTime.day,
+                                    eventValue.editEventData.endTime.hour,
+                                    initialMinute),
+                                mode:
+
+                                    ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                                    eventValue.editEventData.isAllDay
+                                        ? CupertinoDatePickerMode.date
+                                        : CupertinoDatePickerMode.dateAndTime,
+                                use24hFormat: true,
+                                onDateTimeChanged: (dateTime) {
+                                  setState(() {
+                                    endTime = dateTime;
+                                  });
+                                },
+                              ),
+                              arg,
+                            );
+                          },
+                        ))
+                    // const Text("終了"),
+
                     ),
-                  ),
-                ),
                 Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: TextFormField(
@@ -296,7 +294,6 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                           ),
                         ),
                         onPressed: () async {
-                          //TODO: showOkCancelAlertDialogの実装 driftでデータベースの削除
                           final result = await showOkCancelAlertDialog(
                             context: (context),
                             title: "予定の削除",
@@ -382,6 +379,33 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
               ),
             ),
             Expanded(child: SafeArea(top: false, child: child)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScheduleConfigCell extends StatelessWidget {
+  const _ScheduleConfigCell(
+      {Key? key, required this.leading, required this.trailing})
+      : super(key: key);
+
+  final Widget leading;
+  final Widget trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 50,
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            leading,
+            trailing,
           ],
         ),
       ),

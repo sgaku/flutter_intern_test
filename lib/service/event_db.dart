@@ -44,7 +44,7 @@ class MyDatabase extends _$MyDatabase {
     ));
   }
 
-  //TODO: updateの処理をなおす　return文のコードがおかしい
+
   Future<int> updateEvent(EventData event) {
     return (update(events)..where((tbl) => tbl.id.equals(event.id)))
         .write(EventsCompanion(

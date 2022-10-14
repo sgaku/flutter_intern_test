@@ -4,7 +4,7 @@ import 'package:calendar_sample/repository/event_data.dart';
 import 'package:flutter/widgets.dart';
 
 class FetchDateBase extends ChangeNotifier {
-  //startDatetimeをkeyにする
+
   Map<DateTime, List<EventData>> dataMap = {};
   List<EventData> eventData = [];
 
@@ -27,16 +27,15 @@ class FetchDateBase extends ChangeNotifier {
     ///dataMapの初期化
     dataMap = {};
     for (final e in eventData) {
-      ///終日の場合、開始日と終了日の間の日にもイベントを入れる
-      if (e.isAllDay == true) {
+      ///開始日と終了日の日の差を計算したいので、時間単位を省く
         final startDay =
             DateTime(e.startTime.year, e.startTime.month, e.startTime.day);
         final endDay = DateTime(e.endTime.year, e.endTime.month, e.endTime.day);
 
-        ///startTimeとendTimeの日の差を計算する
+        ///開始日と終了日の差を計算
         var differ = endDay.difference(startDay).inDays;
 
-        ///startTime+iで開始日、間の日、終了日にイベントを入れる
+        ///終了日と開始日の差からイベントを追加する回数を決める
         for (int i = 0; i <= differ; i++) {
           final date = DateTime(
               e.startTime.year, e.startTime.month, e.startTime.day + i);
@@ -46,18 +45,9 @@ class FetchDateBase extends ChangeNotifier {
             dataMap[date.add(date.timeZoneOffset).toUtc()]!.add(e);
           }
         }
-      } else {
-        if (dataMap[e.selectedDate] == null) {
-          dataMap[e.selectedDate] = [e];
-        } else {
-          dataMap[e.selectedDate]!.add(e);
-        }
-      }
     }
-    print(dataMap);
 
     notifyListeners();
-    events.clear();
     eventData.clear();
   }
 }
