@@ -1,16 +1,19 @@
-import 'package:calendar_sample/common/main.dart';
 import 'package:calendar_sample/model/event_data.dart';
-
+import 'package:calendar_sample/repository/event_repository.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 
 class FetchDateBase extends ChangeNotifier {
 
   Map<DateTime, List<EventData>> dataMap = {};
   List<EventData> eventData = [];
 
+  FetchDateBase(this.ref);
+final Ref ref;
   Future<void> fetchDataList() async {
     ///driftのデータを全取得して、listに格納する
-    final events = await dataBase.allEventsData;
+    final events = await ref.read(eventRepositoryProvider).allEventsData;
 
     ///Event -> EventData型に変換して代入
     for (int i = 0; i < events.length; i++) {

@@ -9,7 +9,7 @@ import 'fetch_db.dart';
 
 final focusedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
 final selectedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
-final fetchDataBaseProvider = ChangeNotifierProvider((ref) => FetchDateBase());
+final fetchDataBaseProvider = ChangeNotifierProvider((ref) => FetchDateBase(ref));
 
 class CalendarView extends ConsumerStatefulWidget {
   const CalendarView({super.key});

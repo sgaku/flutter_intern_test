@@ -12,7 +12,7 @@ import '../model/event_data.dart';
 final eventDataProvider =
     StateNotifierProvider.autoDispose<AddEventDataNotifier, AddEventDataState>(
         (ref) {
-  return AddEventDataNotifier();
+  return AddEventDataNotifier(ref);
 });
 
 class AddSchedulePage extends ConsumerStatefulWidget {

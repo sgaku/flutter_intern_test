@@ -29,42 +29,6 @@ class MyDatabase extends _$MyDatabase {
 
   @override
   int get schemaVersion => 1;
-
-  Future<List<Event>> get allEventsData => select(events).get();
-
-  Future<int> addEvent(EventData e) {
-    return into(events).insert(EventsCompanion(
-      id: Value(e.id),
-      selectedDate: Value(e.selectedDate),
-      title: Value(e.title),
-      isAllDay: Value(e.isAllDay),
-      startDateTime: Value(e.startTime),
-      endDateTime: Value(e.endTime),
-      comment: Value(e.comment),
-    ));
-  }
-
-
-  Future<int> updateEvent(EventData event) {
-    return (update(events)..where((tbl) => tbl.id.equals(event.id)))
-        .write(EventsCompanion(
-      id: Value(event.id),
-      selectedDate: Value(event.selectedDate),
-      title: Value(event.title),
-      isAllDay: Value(event.isAllDay),
-      startDateTime: Value(event.startTime),
-      endDateTime: Value(event.endTime),
-      comment: Value(event.comment),
-    ));
-  }
-
-  Future<void> deleteAllEvent(List<EventData> e) {
-    return (delete(events).go());
-  }
-
-  Future<void> deleteEvent(EventData e) {
-    return (delete(events)..where((tbl) => tbl.id.equals(e.id))).go();
-  }
 }
 
 LazyDatabase _openConnection() {

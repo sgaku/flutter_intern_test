@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-late MyDatabase dataBase;
+// late MyDatabase dataBase;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +15,6 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  dataBase = MyDatabase();
   runApp(const ProviderScope(child: MyApp()));
 }
 

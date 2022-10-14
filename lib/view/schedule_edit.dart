@@ -1,5 +1,6 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:calendar_sample/common/main.dart';
+import 'package:calendar_sample/repository/event_repository.dart';
 import 'package:calendar_sample/view/calendar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -87,7 +88,9 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                           ? null
                           : () async {
                               ///更新したイベントをdriftに追加
-                              dataBase.updateEvent(eventValue.editEventData);
+                              ref
+                                  .read(eventRepositoryProvider)
+                                  .updateEvent(eventValue.editEventData);
 
                               ///eventLoaderに表示するデータを更新
                               await fetchDataBaseValue.fetchDataList();
@@ -303,7 +306,9 @@ class ScheduleDetailState extends ConsumerState<EditSchedulePage> {
                           );
                           if (result == OkCancelResult.ok) {
                             ///指定されているデータの削除
-                            dataBase.deleteEvent(eventValue.editEventData);
+                            ref
+                                .read(eventRepositoryProvider)
+                                .deleteEvent(eventValue.editEventData);
 
                             ///データの更新
                             await fetchDataBaseValue.fetchDataList();
