@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../model/event_state.dart';
 
 final eventStateProvider =
-    StateNotifierProvider<EventStateNotifier, EventState>((ref) {
+    StateNotifierProvider.autoDispose<EventStateNotifier, EventState>((ref) {
   return EventStateNotifier(ref);
 });
 
@@ -17,6 +17,10 @@ class EventStateNotifier extends StateNotifier<EventState> {
   Future<void> fetchEventDataMap() async {
     ///driftのデータを全取得して、listに格納する
     final events = await ref.read(eventRepositoryProvider).allEventsData;
+
+    ///eventDataMapの初期化
+    state = state.copyWith(eventDataMap: {});
+
     final Map<DateTime, List<EventData>> mutableDataMap = {};
 
     ///Event -> EventData型に変換して代入

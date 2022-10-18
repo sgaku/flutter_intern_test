@@ -43,6 +43,11 @@ class CalendarViewState extends ConsumerState<CalendarView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("カレンダー"),
+        leading: IconButton(icon: const Icon(Icons.check),onPressed: () async{
+          await ref
+              .read(eventStateProvider.notifier)
+              .fetchEventDataMap();
+        },),
       ),
       body: Column(
         children: [
