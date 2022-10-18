@@ -1,6 +1,7 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:calendar_sample/common/schedule_text_field.dart';
 import 'package:calendar_sample/repository/event_repository.dart';
+import 'package:calendar_sample/view/calendar/calendar_view.dart';
 import 'package:calendar_sample/view/schedule_edit/edit_event_state_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -29,8 +30,6 @@ class EditScheduleView extends ConsumerStatefulWidget {
 class ScheduleDetailState extends ConsumerState<EditScheduleView> {
   late FocusNode myFocusNode;
 
-  DateTime startTime = DateTime.now();
-  DateTime endTime = DateTime.now();
   DateFormat dateFormatForDateAndTime = DateFormat('yyyy-MM-dd HH:mm');
   DateFormat dateFormatForDate = DateFormat('yyyy-MM-dd');
   var uuid = Uuid();
@@ -204,8 +203,15 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                                         : CupertinoDatePickerMode.dateAndTime,
                                 use24hFormat: true,
                                 onDateTimeChanged: (dateTime) {
-                                  setState(() {
-                                    startTime = dateTime;
+                                  ref
+                                      .read(
+                                          editEventStateProvider(arg).notifier)
+                                      .update((state) {
+                                    final updateStartTime = state.editEventData
+                                        .copyWith(startTime: dateTime);
+                                    state = state.copyWith(
+                                        editEventData: updateStartTime);
+                                    return state;
                                   });
                                 },
                               ),
@@ -253,8 +259,15 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                                         : CupertinoDatePickerMode.dateAndTime,
                                 use24hFormat: true,
                                 onDateTimeChanged: (dateTime) {
-                                  setState(() {
-                                    endTime = dateTime;
+                                  ref
+                                      .read(
+                                          editEventStateProvider(arg).notifier)
+                                      .update((state) {
+                                    final updateEndTime = state.editEventData
+                                        .copyWith(endTime: dateTime);
+                                    state = state.copyWith(
+                                        editEventData: updateEndTime);
+                                    return state;
                                   });
                                 },
                               ),
@@ -343,6 +356,18 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                 children: [
                   TextButton(
                       onPressed: () {
+                        ref
+                            .read(editEventStateProvider(data).notifier)
+                            .update((state) {
+                          final cancelUpdateState = state.editEventData
+                              .copyWith(
+                                  startTime: data.startTime,
+                                  endTime: data.endTime);
+
+                          state =
+                              state.copyWith(editEventData: cancelUpdateState);
+                          return state;
+                        });
                         Navigator.pop(context);
                       },
                       child: const Text("キャンセル")),
@@ -350,42 +375,54 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                       onPressed: () {
                         final eventValue =
                             ref.read(editEventStateProvider(data));
-                        final isEndTimeBefore = endTime.isBefore(startTime);
-                        final isEqual = endTime.microsecondsSinceEpoch ==
-                            startTime.millisecondsSinceEpoch;
+                        final isEndTimeBefore = eventValue.editEventData.endTime
+                            .isBefore(eventValue.editEventData.startTime);
+                        final isEqual = eventValue
+                                .editEventData.endTime.microsecondsSinceEpoch ==
+                            eventValue
+                                .editEventData.startTime.millisecondsSinceEpoch;
 
                         switch (eventValue.editEventData.isAllDay) {
                           case true:
                             if (isEndTimeBefore || isEqual) {
-                              endTime = startTime;
+                              ref
+                                  .read(editEventStateProvider(data).notifier)
+                                  .update((state) {
+                                final equalEndAndStart = state.editEventData
+                                    .copyWith(
+                                        endTime: state.editEventData.startTime);
+                                state = state.copyWith(
+                                    editEventData: equalEndAndStart);
+                                return state;
+                              });
                             }
                             break;
                           case false:
                             if (isEndTimeBefore || isEqual) {
-                              endTime = startTime.add(const Duration(hours: 1));
+                              ref
+                                  .read(editEventStateProvider(data).notifier)
+                                  .update((state) {
+                                DateTime mutableTime =
+                                    state.editEventData.startTime;
+                                final equalEndAndStart = state.editEventData
+                                    .copyWith(
+                                        endTime: mutableTime
+                                            .add(const Duration(hours: 1)));
+                                state = state.copyWith(
+                                    editEventData: equalEndAndStart);
+                                return state;
+                              });
                             }
                             break;
                         }
-
-                        ref
-                            .read(editEventStateProvider(data).notifier)
-                            .update((state) {
-                          final updateStartTime = state.editEventData
-                              .copyWith(startTime: startTime);
-                          state = state.copyWith(
-                              isUpdated: true, editEventData: updateStartTime);
-                          return state;
-                        });
-                        ref
-                            .read(editEventStateProvider(data).notifier)
-                            .update((state) {
-                          final updateEndTime =
-                              state.editEventData.copyWith(endTime: endTime);
-                          state = state.copyWith(
-                              isUpdated: true, editEventData: updateEndTime);
-                          return state;
-                        });
-
+                        if (eventValue.editEventData.startTime !=
+                                data.startTime ||
+                            eventValue.editEventData.endTime != data.endTime) {
+                          ref
+                              .read(editEventStateProvider(data).notifier)
+                              .update((state) =>
+                                  state = state.copyWith(isUpdated: true));
+                        }
                         Navigator.pop(context);
                       },
                       child: const Text("完了")),

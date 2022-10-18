@@ -20,7 +20,6 @@ class EventStateNotifier extends StateNotifier<EventState> {
 
     ///eventDataMapの初期化
     state = state.copyWith(eventDataMap: {});
-
     final Map<DateTime, List<EventData>> mutableDataMap = {};
 
     ///Event -> EventData型に変換して代入

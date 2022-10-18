@@ -7,6 +7,6 @@ class EditEventStateNotifier extends StateNotifier<EditEventDataState> {
 
   void update(EditEventDataState Function(EditEventDataState state) callback) {
     final updatedState = callback(state);
-    state = updatedState.copyWith(isUpdated: true);
+    state = updatedState.copyWith();
   }
 }
