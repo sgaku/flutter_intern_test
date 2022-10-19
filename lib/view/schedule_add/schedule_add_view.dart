@@ -22,10 +22,10 @@ class AddScheduleView extends ConsumerStatefulWidget {
   const AddScheduleView({super.key});
 
   @override
-  ScheduleDetailState createState() => ScheduleDetailState();
+  AddScheduleState createState() => AddScheduleState();
 }
 
-class ScheduleDetailState extends ConsumerState<AddScheduleView> {
+class AddScheduleState extends ConsumerState<AddScheduleView> {
   late FocusNode myFocusNode;
 
   ///代入するデータのパラメータ（stateNotifierに入れるための変数）
@@ -44,8 +44,11 @@ class ScheduleDetailState extends ConsumerState<AddScheduleView> {
     final selectedDayValue = ref.read(selectedDayProvider);
     startTime = DateTime(selectedDayValue.year, selectedDayValue.month,
         selectedDayValue.day, startTime.hour, startTime.minute);
+    startTime = _timeFormat(startTime);
+
     endTime = DateTime(selectedDayValue.year, selectedDayValue.month,
         selectedDayValue.day, endTime.hour, endTime.minute);
+    endTime = _timeFormat(endTime);
     myFocusNode = FocusNode();
     super.initState();
   }
@@ -252,6 +255,14 @@ class ScheduleDetailState extends ConsumerState<AddScheduleView> {
         ),
       ),
     );
+  }
+  DateTime _timeFormat(DateTime t){
+    int initialMinute = t.minute;
+    if (initialMinute % 15 != 0) {
+      initialMinute =
+          initialMinute - initialMinute % 15 + 15;
+    }
+    return DateTime(t.year,t.month,t.day,t.hour,initialMinute);
   }
 
   void _showCupertinoPicker(Widget child) {

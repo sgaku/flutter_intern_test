@@ -24,10 +24,10 @@ class EditScheduleView extends ConsumerStatefulWidget {
   const EditScheduleView({super.key});
 
   @override
-  ScheduleDetailState createState() => ScheduleDetailState();
+  EditScheduleState createState() => EditScheduleState();
 }
 
-class ScheduleDetailState extends ConsumerState<EditScheduleView> {
+class EditScheduleState extends ConsumerState<EditScheduleView> {
   late FocusNode myFocusNode;
 
   DateFormat dateFormatForDateAndTime = DateFormat('yyyy-MM-dd HH:mm');
@@ -228,10 +228,10 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
                           style: TextButton.styleFrom(
                               foregroundColor: Colors.black),
                           child: Text(
-
                               ///終日だったら日付のみ、そうでなければ日付と時間を表示
                               eventValue.editEventData.isAllDay
-                                  ? dateFormatForDate
+                                  ?
+                              dateFormatForDate
                                       .format(eventValue.editEventData.endTime)
                                   : dateFormatForDateAndTime.format(
                                       eventValue.editEventData.endTime)),
@@ -336,6 +336,8 @@ class ScheduleDetailState extends ConsumerState<EditScheduleView> {
       ),
     );
   }
+
+
 
   void _showCupertinoPicker(Widget child, EventData data) {
     showCupertinoModalPopup(

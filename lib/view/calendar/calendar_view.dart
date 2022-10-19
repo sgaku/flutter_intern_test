@@ -1,10 +1,12 @@
 import 'package:calendar_sample/model/event_data.dart';
+import 'package:calendar_sample/view/calendar/schedule_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../common/text_color.dart';
 import '../event_state_notifier.dart';
 
 final focusedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());
@@ -43,11 +45,12 @@ class CalendarViewState extends ConsumerState<CalendarView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("カレンダー"),
-        leading: IconButton(icon: const Icon(Icons.check),onPressed: () async{
-          await ref
-              .read(eventStateProvider.notifier)
-              .fetchEventDataMap();
-        },),
+        leading: IconButton(
+          icon: const Icon(Icons.check),
+          onPressed: () async {
+            await ref.read(eventStateProvider.notifier).fetchEventDataMap();
+          },
+        ),
       ),
       body: Column(
         children: [
@@ -127,12 +130,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                   .update((state) => selectDay);
               showDialog(
                   context: context,
-                  builder: (context) => Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: const [
-                          DetailDialog(),
-                        ],
-                      ));
+                  builder: (context) => ScheduleDialog(pageController));
             },
             selectedDayPredicate: (DateTime date) {
               return isSameDay(selectedDayValue, date);
@@ -143,7 +141,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                 return Center(
                   child: Text(
                     text,
-                    style: TextStyle(color: _textColor(day), fontSize: 8),
+                    style: TextStyle(color: textColor(day), fontSize: 8),
                   ),
                 );
               },
@@ -172,7 +170,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: _textColor(day),
+                      color: textColor(day),
                     ),
                   ),
                 );
@@ -311,148 +309,148 @@ class CalendarViewState extends ConsumerState<CalendarView> {
   }
 }
 
-Color _textColor(DateTime day) {
-  const defaultTextColor = Colors.black87;
-  if (day.weekday == DateTime.sunday) {
-    return Colors.red;
-  }
-  if (day.weekday == DateTime.saturday) {
-    return Colors.blue[600]!;
-  }
-  return defaultTextColor;
-}
+// Color _textColor(DateTime day) {
+//   const defaultTextColor = Colors.black87;
+//   if (day.weekday == DateTime.sunday) {
+//     return Colors.red;
+//   }
+//   if (day.weekday == DateTime.saturday) {
+//     return Colors.blue[600]!;
+//   }
+//   return defaultTextColor;
+// }
 
-class DetailDialog extends ConsumerWidget {
-  const DetailDialog({super.key, required});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    DateFormat time = DateFormat.Hm();
-    final dateFormatForDayOfWeek = DateFormat.E('ja');
-    DateFormat dateFormatForDate = DateFormat('yyyy/MM/dd');
-    final selectedValue = ref.watch(selectedDayProvider);
-
-    ///選択した日付のイベントを取得
-    final selectedEvents = ref.watch(eventStateProvider
-        .select((value) => value.eventDataMap[selectedValue]));
-    return AlertDialog(
-      insetPadding: const EdgeInsets.all(8),
-      content: SizedBox(
-        width: 270,
-        height: 530,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                RichText(
-                    text: TextSpan(
-                        style: TextStyle(
-                            color: _textColor(selectedValue),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 17),
-                        children: <TextSpan>[
-                      TextSpan(text: dateFormatForDate.format(selectedValue)),
-                      TextSpan(
-                          text:
-                              " (${dateFormatForDayOfWeek.format(selectedValue)})",
-                          style: const TextStyle(
-                            fontWeight: FontWeight.normal,
-                          ))
-                    ])),
-                IconButton(
-                  onPressed: () {
-                    ///編集ページへ遷移
-                    Navigator.pushNamed(context, 'addSchedule');
-                  },
-                  icon: const Icon(Icons.add),
-                  color: Colors.blue,
-                )
-              ],
-            ),
-            if (selectedEvents == null)
-              Expanded(
-                child: Column(
-                  children: const [
-                    Divider(
-                      height: 1,
-                    ),
-                    Expanded(child: Center(child: Text("予定がありません。"))),
-                  ],
-                ),
-              )
-            else
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: List.generate(
-                      selectedEvents.length,
-                      (index) {
-                        final currentEvent = selectedEvents[index];
-                        return Column(
-                          children: [
-                            const Divider(
-                              height: 1,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: ListTile(
-                                leading: SizedBox(
-                                  width: 50,
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      currentEvent.isAllDay
-                                          ? const Center(child: Text("終日"))
-                                          : Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Text(
-                                                  time.format(
-                                                      currentEvent.startTime),
-                                                  style: const TextStyle(
-                                                      fontSize: 12),
-                                                ),
-                                                Text(
-                                                  time.format(
-                                                      currentEvent.endTime),
-                                                  style: const TextStyle(
-                                                      fontSize: 12),
-                                                ),
-                                              ],
-                                            ),
-                                      const VerticalDivider(
-                                        thickness: 4,
-                                        color: Colors.blue,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                title: Text(
-                                  currentEvent.title,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                onTap: () {
-                                  Navigator.pushNamed(context, 'editSchedule',
-                                      arguments: currentEvent);
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30),
-      ),
-    );
-  }
-}
+// class DetailDialog extends ConsumerWidget {
+//   const DetailDialog({super.key, required});
+//
+//   @override
+//   Widget build(BuildContext context, WidgetRef ref) {
+//     DateFormat time = DateFormat.Hm();
+//     final dateFormatForDayOfWeek = DateFormat.E('ja');
+//     DateFormat dateFormatForDate = DateFormat('yyyy/MM/dd');
+//     final selectedValue = ref.watch(selectedDayProvider);
+//
+//     ///選択した日付のイベントを取得
+//     final selectedEvents = ref.watch(eventStateProvider
+//         .select((value) => value.eventDataMap[selectedValue]));
+//     return AlertDialog(
+//       insetPadding: const EdgeInsets.all(8),
+//       content: SizedBox(
+//         width: 270,
+//         height: 530,
+//         child: Column(
+//           children: [
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//               children: [
+//                 RichText(
+//                     text: TextSpan(
+//                         style: TextStyle(
+//                             color: _textColor(selectedValue),
+//                             fontWeight: FontWeight.w600,
+//                             fontSize: 17),
+//                         children: <TextSpan>[
+//                       TextSpan(text: dateFormatForDate.format(selectedValue)),
+//                       TextSpan(
+//                           text:
+//                               " (${dateFormatForDayOfWeek.format(selectedValue)})",
+//                           style: const TextStyle(
+//                             fontWeight: FontWeight.normal,
+//                           ))
+//                     ])),
+//                 IconButton(
+//                   onPressed: () {
+//                     ///編集ページへ遷移
+//                     Navigator.pushNamed(context, 'addSchedule');
+//                   },
+//                   icon: const Icon(Icons.add),
+//                   color: Colors.blue,
+//                 )
+//               ],
+//             ),
+//             if (selectedEvents == null)
+//               Expanded(
+//                 child: Column(
+//                   children: const [
+//                     Divider(
+//                       height: 1,
+//                     ),
+//                     Expanded(child: Center(child: Text("予定がありません。"))),
+//                   ],
+//                 ),
+//               )
+//             else
+//               Expanded(
+//                 child: SingleChildScrollView(
+//                   child: Column(
+//                     children: List.generate(
+//                       selectedEvents.length,
+//                       (index) {
+//                         final currentEvent = selectedEvents[index];
+//                         return Column(
+//                           children: [
+//                             const Divider(
+//                               height: 1,
+//                             ),
+//                             Padding(
+//                               padding: const EdgeInsets.symmetric(vertical: 4),
+//                               child: ListTile(
+//                                 leading: SizedBox(
+//                                   width: 50,
+//                                   child: Row(
+//                                     mainAxisAlignment:
+//                                         MainAxisAlignment.spaceAround,
+//                                     children: [
+//                                       currentEvent.isAllDay
+//                                           ? const Center(child: Text("終日"))
+//                                           : Column(
+//                                               mainAxisAlignment:
+//                                                   MainAxisAlignment.center,
+//                                               children: [
+//                                                 Text(
+//                                                   time.format(
+//                                                       currentEvent.startTime),
+//                                                   style: const TextStyle(
+//                                                       fontSize: 12),
+//                                                 ),
+//                                                 Text(
+//                                                   time.format(
+//                                                       currentEvent.endTime),
+//                                                   style: const TextStyle(
+//                                                       fontSize: 12),
+//                                                 ),
+//                                               ],
+//                                             ),
+//                                       const VerticalDivider(
+//                                         thickness: 4,
+//                                         color: Colors.blue,
+//                                       ),
+//                                     ],
+//                                   ),
+//                                 ),
+//                                 title: Text(
+//                                   currentEvent.title,
+//                                   overflow: TextOverflow.ellipsis,
+//                                 ),
+//                                 onTap: () {
+//                                   Navigator.pushNamed(context, 'editSchedule',
+//                                       arguments: currentEvent);
+//                                 },
+//                               ),
+//                             ),
+//                           ],
+//                         );
+//                       },
+//                     ),
+//                   ),
+//                 ),
+//               ),
+//           ],
+//         ),
+//       ),
+//       shape: RoundedRectangleBorder(
+//         borderRadius: BorderRadius.circular(30),
+//       ),
+//     );
+//   }
+// }
