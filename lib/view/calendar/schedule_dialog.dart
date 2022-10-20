@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -27,7 +26,8 @@ class ScheduleDialogState extends ConsumerState<ScheduleDialog> {
     final selectedDayState = ref.read(selectedDayProvider);
     final initialPageCount = _getPageCount(firstDay, selectedDayState);
     previousPage = initialPageCount;
-    controller = PageController(initialPage: initialPageCount,viewportFraction: 0.85);
+    controller =
+        PageController(initialPage: initialPageCount, viewportFraction: 0.85);
     super.initState();
   }
 
@@ -42,11 +42,8 @@ class ScheduleDialogState extends ConsumerState<ScheduleDialog> {
     DateFormat time = DateFormat.Hm();
     final dateFormatForDayOfWeek = DateFormat.E('ja');
     DateFormat dateFormatForDate = DateFormat('yyyy/MM/dd');
-    final selectedValue = ref.watch(selectedDayProvider);
+    DateTime currentDate;
 
-    ///選択した日付のイベントを取得
-    final selectedEvents = ref.watch(eventStateProvider
-        .select((value) => value.eventDataMap[selectedValue]));
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -56,16 +53,6 @@ class ScheduleDialogState extends ConsumerState<ScheduleDialog> {
             controller: controller,
             itemCount: _getPageCount(firstDay, lastDay),
             onPageChanged: (int page) {
-              if (page > previousPage) {
-                ref
-                    .read(selectedDayProvider.notifier)
-                    .update((state) => selectedValue.add(const Duration(days: 1)));
-              } else {
-                ref
-                    .read(selectedDayProvider.notifier)
-                    .update((state) => selectedValue.add(const Duration(days: -1)));
-              }
-              previousPage = page;
               var distance = _getMonthDiffer();
               if (distance != 0) {
                 widget.calendarController.animateToPage(
@@ -75,6 +62,10 @@ class ScheduleDialogState extends ConsumerState<ScheduleDialog> {
               }
             },
             itemBuilder: (context, index) {
+              currentDate = firstDay.add(Duration(days: index));
+              currentDate = currentDate.add(currentDate.timeZoneOffset).toUtc();
+              final selectedEvents = ref.watch(eventStateProvider
+                  .select((value) => value.eventDataMap[currentDate]));
               return AlertDialog(
                 insetPadding: const EdgeInsets.all(8),
                 content: SizedBox(
@@ -88,15 +79,16 @@ class ScheduleDialogState extends ConsumerState<ScheduleDialog> {
                           RichText(
                               text: TextSpan(
                                   style: TextStyle(
-                                      color: textColor(selectedValue),
+                                      color: textColor(currentDate),
                                       fontWeight: FontWeight.w600,
                                       fontSize: 17),
                                   children: <TextSpan>[
                                 TextSpan(
-                                    text: dateFormatForDate.format(selectedValue)),
+                                    text:
+                                        dateFormatForDate.format(currentDate)),
                                 TextSpan(
                                     text:
-                                        " (${dateFormatForDayOfWeek.format(selectedValue)})",
+                                        " (${dateFormatForDayOfWeek.format(currentDate)})",
                                     style: const TextStyle(
                                       fontWeight: FontWeight.normal,
                                     ))
@@ -104,7 +96,7 @@ class ScheduleDialogState extends ConsumerState<ScheduleDialog> {
                           IconButton(
                             onPressed: () {
                               ///編集ページへ遷移
-                              Navigator.pushNamed(context, 'addSchedule');
+                              Navigator.popAndPushNamed(context, 'addSchedule');
                             },
                             icon: const Icon(Icons.add),
                             color: Colors.blue,
@@ -136,8 +128,8 @@ class ScheduleDialogState extends ConsumerState<ScheduleDialog> {
                                         height: 1,
                                       ),
                                       Padding(
-                                        padding:
-                                            const EdgeInsets.symmetric(vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 4),
                                         child: ListTile(
                                           leading: SizedBox(
                                             width: 50,
@@ -146,22 +138,30 @@ class ScheduleDialogState extends ConsumerState<ScheduleDialog> {
                                                   MainAxisAlignment.spaceAround,
                                               children: [
                                                 currentEvent.isAllDay
-                                                    ? const Center(child: Text("終日"))
+                                                    ? const Center(
+                                                        child: Text("終日"))
                                                     : Column(
                                                         mainAxisAlignment:
-                                                            MainAxisAlignment.center,
+                                                            MainAxisAlignment
+                                                                .center,
                                                         children: [
                                                           Text(
-                                                            time.format(currentEvent
-                                                                .startTime),
-                                                            style: const TextStyle(
-                                                                fontSize: 12),
+                                                            time.format(
+                                                                currentEvent
+                                                                    .startTime),
+                                                            style:
+                                                                const TextStyle(
+                                                                    fontSize:
+                                                                        12),
                                                           ),
                                                           Text(
                                                             time.format(
-                                                                currentEvent.endTime),
-                                                            style: const TextStyle(
-                                                                fontSize: 12),
+                                                                currentEvent
+                                                                    .endTime),
+                                                            style:
+                                                                const TextStyle(
+                                                                    fontSize:
+                                                                        12),
                                                           ),
                                                         ],
                                                       ),

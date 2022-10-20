@@ -1,7 +1,6 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:calendar_sample/common/schedule_text_field.dart';
 import 'package:calendar_sample/repository/event_repository.dart';
-import 'package:calendar_sample/view/calendar/calendar_view.dart';
 import 'package:calendar_sample/view/schedule_edit/edit_event_state_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -159,10 +158,7 @@ class EditScheduleState extends ConsumerState<EditScheduleView> {
                                     editEventData: updateIsAllDay);
                                 return state;
                               });
-                            }))
-                    // const Text("終日"),
-
-                    ),
+                            }))),
                 Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
@@ -228,10 +224,10 @@ class EditScheduleState extends ConsumerState<EditScheduleView> {
                           style: TextButton.styleFrom(
                               foregroundColor: Colors.black),
                           child: Text(
+
                               ///終日だったら日付のみ、そうでなければ日付と時間を表示
                               eventValue.editEventData.isAllDay
-                                  ?
-                              dateFormatForDate
+                                  ? dateFormatForDate
                                       .format(eventValue.editEventData.endTime)
                                   : dateFormatForDateAndTime.format(
                                       eventValue.editEventData.endTime)),
@@ -336,8 +332,6 @@ class EditScheduleState extends ConsumerState<EditScheduleView> {
       ),
     );
   }
-
-
 
   void _showCupertinoPicker(Widget child, EventData data) {
     showCupertinoModalPopup(
