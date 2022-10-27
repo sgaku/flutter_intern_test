@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import '../../common/schedule_app_bar.dart';
 import '../../common/schedule_config_cell.dart';
 import '../../model/event_data.dart';
 import 'package:calendar_sample/view/event_state_notifier.dart';
@@ -37,8 +38,6 @@ class EditScheduleState extends ConsumerState<EditScheduleView> {
     final EventData arg =
         (ModalRoute.of(context)?.settings.arguments) as EventData;
 
-    // final eventValue = ref.watch(editEventStateProviderFamily(arg));
-
     return ProviderScope(
       overrides: [
         editEventStateProvider
@@ -54,77 +53,45 @@ class EditScheduleState extends ConsumerState<EditScheduleView> {
               child: Scaffold(
                 resizeToAvoidBottomInset: false,
                 backgroundColor: const Color.fromARGB(255, 240, 238, 237),
-                appBar: AppBar(
-                  automaticallyImplyLeading: false,
-                  leading: IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: eventValue.isUpdated
-                          ? () async {
-                              final result = await showModalActionSheet<String>(
-                                context: context,
-                                actions: [
-                                  const SheetAction(
-                                    label: '編集を破棄',
-                                    key: 'dispose',
-                                  ),
-                                ],
-                              );
-                              if (result == 'dispose') {
-                                Navigator.popUntil(
-                                    context, ModalRoute.withName("/"));
-                              }
-                            }
-                          : () {
+                appBar: ScheduleAppBar(
+                  title: const Text('予定の編集'),
+                  onPressedIcon: eventValue.isUpdated
+                      ? () async {
+                          final result = await showModalActionSheet<String>(
+                            context: context,
+                            actions: [
+                              const SheetAction(
+                                label: '編集を破棄',
+                                key: 'dispose',
+                              ),
+                            ],
+                          );
+                          if (result == 'dispose') {
+                            Navigator.popUntil(
+                                context, ModalRoute.withName("/"));
+                          }
+                        }
+                      : () {
+                          Navigator.popUntil(context, ModalRoute.withName("/"));
+                        },
+                  onPressedElevated:
+
+                      ///取得したイベントの情報が変化していなかったら非活性にする
+                      !eventValue.isUpdated
+                          ? null
+                          : () async {
+                              ///更新したイベントをdriftに追加
+                              ref
+                                  .read(eventRepositoryProvider)
+                                  .updateEvent(eventValue.editEventData);
+
+                              ///eventLoaderに表示するデータを更新
+                              await ref
+                                  .read(eventStateProvider.notifier)
+                                  .fetchEventDataMap();
                               Navigator.popUntil(
                                   context, ModalRoute.withName("/"));
-                            }),
-                  actions: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ElevatedButton(
-                        onPressed:
-
-                            ///取得したイベントの情報が変化していなかったら非活性にする
-                            !eventValue.isUpdated
-                                ? null
-                                : () async {
-                                    ///更新したイベントをdriftに追加
-                                    ref
-                                        .read(eventRepositoryProvider)
-                                        .updateEvent(eventValue.editEventData);
-
-                                    ///eventLoaderに表示するデータを更新
-                                    await ref
-                                        .read(eventStateProvider.notifier)
-                                        .fetchEventDataMap();
-                                    Navigator.popUntil(
-                                        context, ModalRoute.withName("/"));
-                                  },
-                        style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.resolveWith<Color>(
-                            (Set<MaterialState> states) {
-                              if (states.contains(MaterialState.disabled)) {
-                                return Colors.white;
-                              }
-                              return Colors.white;
                             },
-                          ),
-                          foregroundColor:
-                              MaterialStateProperty.resolveWith<Color>(
-                            (Set<MaterialState> states) {
-                              if (states.contains(MaterialState.disabled)) {
-                                return const Color(0xFFAEAEAE);
-                              }
-                              return Colors.black;
-                            },
-                          ),
-                        ),
-                        child: const Text("保存"),
-                      ),
-                    )
-                  ],
-                  title: const Text("予定の編集"),
                 ),
                 body: Center(
                   child: Column(

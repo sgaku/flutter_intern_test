@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import '../../common/schedule_app_bar.dart';
 import '../../common/schedule_config_cell.dart';
 import 'add_event_state_notifier.dart';
 import '../../model/event_data.dart';
@@ -56,67 +57,37 @@ class AddScheduleState extends ConsumerState<AddScheduleView> {
         child: Scaffold(
           resizeToAvoidBottomInset: false,
           backgroundColor: const Color.fromARGB(255, 240, 238, 237),
-          appBar: AppBar(
-              automaticallyImplyLeading: false,
-              leading: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  Navigator.popUntil(context, ModalRoute.withName("/"));
-                },
-              ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed:
+          appBar: ScheduleAppBar(
+            title: const Text('予定の追加'),
+            onPressedIcon: () {
+              Navigator.popUntil(context, ModalRoute.withName("/"));
+            },
+            onPressedElevated:
 
-                        ///タイトルとコメントに何も入力されていなかったら（デフォルトで""が入っている）非活性に
-                        title.isEmpty || comment.isEmpty
-                            ? null
-                            : () async {
-                                ///EventDataクラスで状態管理しているため、そのクラスに格納する形でdriftに追加
-                                final data = EventData(
-                                    id: uuid.v1(),
-                                    selectedDate: selectedValue,
-                                    title: title,
-                                    isAllDay: isAllDay,
-                                    startTime: startTime,
-                                    endTime: endTime,
-                                    comment: comment);
-                                await ref
-                                    .read(addEventStateProvider.notifier)
-                                    .addEvents(data);
+                ///タイトルとコメントに何も入力されていなかったら（デフォルトで""が入っている）非活性に
+                title.isEmpty || comment.isEmpty
+                    ? null
+                    : () async {
+                        ///EventDataクラスで状態管理しているため、そのクラスに格納する形でdriftに追加
+                        final data = EventData(
+                            id: uuid.v1(),
+                            selectedDate: selectedValue,
+                            title: title,
+                            isAllDay: isAllDay,
+                            startTime: startTime,
+                            endTime: endTime,
+                            comment: comment);
+                        await ref
+                            .read(addEventStateProvider.notifier)
+                            .addEvents(data);
 
-                                ///eventLoaderに表示するデータを更新
-                                await ref
-                                    .read(eventStateProvider.notifier)
-                                    .fetchEventDataMap();
-                                Navigator.popUntil(
-                                    context, ModalRoute.withName("/"));
-                              },
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                        (Set<MaterialState> states) {
-                          if (states.contains(MaterialState.disabled)) {
-                            return Colors.white;
-                          }
-                          return Colors.white;
-                        },
-                      ),
-                      foregroundColor: MaterialStateProperty.resolveWith<Color>(
-                        (Set<MaterialState> states) {
-                          if (states.contains(MaterialState.disabled)) {
-                            return const Color(0xFFAEAEAE);
-                          }
-                          return Colors.black;
-                        },
-                      ),
-                    ),
-                    child: const Text("保存"),
-                  ),
-                )
-              ],
-              title: const Text("予定の追加")),
+                        ///eventLoaderに表示するデータを更新
+                        await ref
+                            .read(eventStateProvider.notifier)
+                            .fetchEventDataMap();
+                        Navigator.popUntil(context, ModalRoute.withName("/"));
+                      },
+          ),
           body: Center(
             child: Column(
               children: [

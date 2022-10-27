@@ -44,8 +44,11 @@ class CalendarViewState extends ConsumerState<CalendarView> {
     final focusedDayValue = ref.watch(focusedDayProvider);
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 240, 238, 237),
-      appBar: AppBar(
-        title: const Text("カレンダー"),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: AppBar(
+          title: const Text("カレンダー"),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
