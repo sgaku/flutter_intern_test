@@ -4,6 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../model/add_event_data_state.dart';
 
+final addEventStateProvider =
+    StateNotifierProvider.autoDispose<AddEventStateNotifier, AddEventDataState>(
+        (ref) {
+  return AddEventStateNotifier(ref);
+});
+
 class AddEventStateNotifier extends StateNotifier<AddEventDataState> {
   AddEventStateNotifier(this.ref)
       : super((const AddEventDataState(addEventData: null)));

@@ -7,16 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../common/schedule_config_cell.dart';
-import '../../model/add_event_data_state.dart';
 import 'add_event_state_notifier.dart';
 import '../../model/event_data.dart';
-
-///イベントを追加する際に使うプロバイダー
-final addEventStateProvider =
-    StateNotifierProvider.autoDispose<AddEventStateNotifier, AddEventDataState>(
-        (ref) {
-  return AddEventStateNotifier(ref);
-});
 
 class AddScheduleView extends ConsumerStatefulWidget {
   const AddScheduleView({super.key});
@@ -256,13 +248,13 @@ class AddScheduleState extends ConsumerState<AddScheduleView> {
       ),
     );
   }
-  DateTime _timeFormat(DateTime t){
+
+  DateTime _timeFormat(DateTime t) {
     int initialMinute = t.minute;
     if (initialMinute % 15 != 0) {
-      initialMinute =
-          initialMinute - initialMinute % 15 + 15;
+      initialMinute = initialMinute - initialMinute % 15 + 15;
     }
-    return DateTime(t.year,t.month,t.day,t.hour,initialMinute);
+    return DateTime(t.year, t.month, t.day, t.hour, initialMinute);
   }
 
   void _showCupertinoPicker(Widget child) {
