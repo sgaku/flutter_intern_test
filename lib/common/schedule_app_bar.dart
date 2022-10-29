@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 class ScheduleAppBar extends StatelessWidget with PreferredSizeWidget {
   const ScheduleAppBar(
-      {Key? key, required this.onPressedIcon, this.onPressedElevated, required this.title})
+      {Key? key,
+      required this.onPressedIcon,
+      this.onPressedElevated,
+      required this.title})
       : super(key: key);
   final void Function()? onPressedIcon;
   final void Function()? onPressedElevated;
@@ -10,7 +13,6 @@ class ScheduleAppBar extends StatelessWidget with PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(60);
-
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +50,4 @@ class ScheduleAppBar extends StatelessWidget with PreferredSizeWidget {
       ],
     );
   }
-
-
 }

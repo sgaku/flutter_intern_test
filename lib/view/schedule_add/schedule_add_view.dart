@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../common/schedule_app_bar.dart';
+import '../../common/schedule_body.dart';
 import '../../common/schedule_config_cell.dart';
 import 'add_event_state_notifier.dart';
 import '../../model/event_data.dart';
@@ -88,132 +89,111 @@ class AddScheduleState extends ConsumerState<AddScheduleView> {
                         Navigator.popUntil(context, ModalRoute.withName("/"));
                       },
           ),
-          body: Center(
-            child: Column(
-              children: [
-                ScheduleTextField(
-                    initialValue: "",
-                    hintText: 'タイトルを入力してください',
-                    onChanged: (text) {
+          body: ScheduleBody(
+            titleTextField: ScheduleTextField(
+                initialValue: "",
+                hintText: 'タイトルを入力してください',
+                onChanged: (text) {
+                  setState(() {
+                    title = text;
+                  });
+                },
+                maxLine: 1),
+            isAllDayConfigCell: ScheduleConfigCell(
+                leading: const Text("終日"),
+                trailing: Switch(
+                    value: isAllDay,
+                    onChanged: (value) {
                       setState(() {
-                        title = text;
+                        isAllDay = value;
                       });
-                    },
-                    maxLine: 1),
-                Padding(
-                    padding: const EdgeInsets.only(
-                        top: 12, bottom: 1, left: 12, right: 12),
-                    child: ScheduleConfigCell(
-                        leading: const Text("終日"),
-                        trailing: Switch(
-                            value: isAllDay,
-                            onChanged: (value) {
-                              setState(() {
-                                isAllDay = value;
-                              });
-                            }))),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
-                  child: ScheduleConfigCell(
-                      leading: const Text("開始"),
-                      trailing: TextButton(
-                        style:
-                            TextButton.styleFrom(foregroundColor: Colors.black),
-                        child: Text(
+                    })),
+            startTimeConfigCell: ScheduleConfigCell(
+                leading: const Text("開始"),
+                trailing: TextButton(
+                  style: TextButton.styleFrom(foregroundColor: Colors.black),
+                  child: Text(
+
+                      ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                      isAllDay
+                          ? dateFormatForDate.format(startTime)
+                          : dateFormatForDateAndTime.format(startTime)),
+                  onPressed: () {
+                    int initialMinute = startTime.minute;
+                    if (initialMinute % 15 != 0) {
+                      initialMinute = initialMinute - initialMinute % 15 + 15;
+                    }
+                    _showCupertinoPicker(
+                      CupertinoDatePicker(
+                        minuteInterval: 15,
+                        initialDateTime: DateTime(
+                            startTime.year,
+                            startTime.month,
+                            startTime.day,
+                            startTime.hour,
+                            initialMinute),
+                        mode:
 
                             ///終日だったら日付のみ、そうでなければ日付と時間を表示
                             isAllDay
-                                ? dateFormatForDate.format(startTime)
-                                : dateFormatForDateAndTime.format(startTime)),
-                        onPressed: () {
-                          int initialMinute = startTime.minute;
-                          if (initialMinute % 15 != 0) {
-                            initialMinute =
-                                initialMinute - initialMinute % 15 + 15;
-                          }
-                          _showCupertinoPicker(
-                            CupertinoDatePicker(
-                              minuteInterval: 15,
-                              initialDateTime: DateTime(
-                                  startTime.year,
-                                  startTime.month,
-                                  startTime.day,
-                                  startTime.hour,
-                                  initialMinute),
-                              mode:
-
-                                  ///終日だったら日付のみ、そうでなければ日付と時間を表示
-                                  isAllDay
-                                      ? CupertinoDatePickerMode.date
-                                      : CupertinoDatePickerMode.dateAndTime,
-                              use24hFormat: true,
-                              onDateTimeChanged: (dateTime) {
-                                setState(() {
-                                  startTime = dateTime;
-                                });
-                              },
-                            ),
-                          );
+                                ? CupertinoDatePickerMode.date
+                                : CupertinoDatePickerMode.dateAndTime,
+                        use24hFormat: true,
+                        onDateTimeChanged: (dateTime) {
+                          setState(() {
+                            startTime = dateTime;
+                          });
                         },
-                      )),
-                ),
-                Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
-                    child: ScheduleConfigCell(
-                        leading: const Text("終了"),
-                        trailing: TextButton(
-                          style: TextButton.styleFrom(
-                              foregroundColor: Colors.black),
-                          child: Text(
+                      ),
+                    );
+                  },
+                )),
+            endTimeConfigCell: ScheduleConfigCell(
+                leading: const Text("終了"),
+                trailing: TextButton(
+                  style: TextButton.styleFrom(foregroundColor: Colors.black),
+                  child: Text(
 
-                              ///終日だったら日付のみ、そうでなければ日付と時間を表示
-                              isAllDay
-                                  ? dateFormatForDate.format(endTime)
-                                  : dateFormatForDateAndTime.format(endTime)),
-                          onPressed: () {
-                            int initialMinute = endTime.minute;
-                            if (initialMinute % 15 != 0) {
-                              initialMinute =
-                                  initialMinute - initialMinute % 15 + 15;
-                            }
-                            _showCupertinoPicker(
-                              CupertinoDatePicker(
-                                minuteInterval: 15,
-                                initialDateTime: DateTime(
-                                    endTime.year,
-                                    endTime.month,
-                                    endTime.day,
-                                    endTime.hour,
-                                    (initialMinute)),
-                                mode:
+                      ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                      isAllDay
+                          ? dateFormatForDate.format(endTime)
+                          : dateFormatForDateAndTime.format(endTime)),
+                  onPressed: () {
+                    int initialMinute = endTime.minute;
+                    if (initialMinute % 15 != 0) {
+                      initialMinute = initialMinute - initialMinute % 15 + 15;
+                    }
+                    _showCupertinoPicker(
+                      CupertinoDatePicker(
+                        minuteInterval: 15,
+                        initialDateTime: DateTime(endTime.year, endTime.month,
+                            endTime.day, endTime.hour, (initialMinute)),
+                        mode:
 
-                                    ///終日だったら日付のみ、そうでなければ日付と時間を表示
-                                    isAllDay
-                                        ? CupertinoDatePickerMode.date
-                                        : CupertinoDatePickerMode.dateAndTime,
-                                use24hFormat: true,
-                                onDateTimeChanged: (dateTime) {
-                                  setState(() {
-                                    endTime = dateTime;
-                                  });
-                                },
-                              ),
-                            );
-                          },
-                        ))),
-                ScheduleTextField(
-                    initialValue: "",
-                    hintText: 'コメントを入力してください',
-                    onChanged: (text) {
-                      setState(() {
-                        comment = text;
-                      });
-                    },
-                    maxLine: null)
-              ],
-            ),
+                            ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                            isAllDay
+                                ? CupertinoDatePickerMode.date
+                                : CupertinoDatePickerMode.dateAndTime,
+                        use24hFormat: true,
+                        onDateTimeChanged: (dateTime) {
+                          setState(() {
+                            endTime = dateTime;
+                          });
+                        },
+                      ),
+                    );
+                  },
+                )),
+            commentTextField: ScheduleTextField(
+                initialValue: "",
+                hintText: 'コメントを入力してください',
+                onChanged: (text) {
+                  setState(() {
+                    comment = text;
+                  });
+                },
+                maxLine: null),
+            removeContainer: Container(),
           ),
         ),
       ),

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../common/schedule_app_bar.dart';
+import '../../common/schedule_body.dart';
 import '../../common/schedule_config_cell.dart';
 import '../../model/event_data.dart';
 import 'package:calendar_sample/view/event_state_notifier.dart';
@@ -93,221 +94,192 @@ class EditScheduleState extends ConsumerState<EditScheduleView> {
                                   context, ModalRoute.withName("/"));
                             },
                 ),
-                body: Center(
-                  child: Column(
-                    children: [
-                      ScheduleTextField(
-                          initialValue: eventValue.editEventData.title,
-                          hintText: "タイトルを入力してください",
-                          onChanged: (text) {
+                body: ScheduleBody(
+                  titleTextField: ScheduleTextField(
+                      initialValue: eventValue.editEventData.title,
+                      hintText: "タイトルを入力してください",
+                      onChanged: (text) {
+                        ref
+                            .read(editEventStateProvider.notifier)
+                            .update((state) {
+                          final updateTitle =
+                              state.editEventData.copyWith(title: text);
+                          state = state.copyWith(
+                              isUpdated: true, editEventData: updateTitle);
+                          return state;
+                        });
+                      },
+                      maxLine: 1),
+                  isAllDayConfigCell: ScheduleConfigCell(
+                      leading: const Text("終日"),
+                      trailing: Switch(
+                          value: eventValue.editEventData.isAllDay,
+                          onChanged: (value) {
                             ref
                                 .read(editEventStateProvider.notifier)
                                 .update((state) {
-                              final updateTitle =
-                                  state.editEventData.copyWith(title: text);
-                              state = state.copyWith(
-                                  isUpdated: true, editEventData: updateTitle);
-                              return state;
-                            });
-                          },
-                          maxLine: 1),
-                      Padding(
-                          padding: const EdgeInsets.only(
-                              top: 12, bottom: 1, left: 12, right: 12),
-                          child: ScheduleConfigCell(
-                              leading: const Text("終日"),
-                              trailing: Switch(
-                                  value: eventValue.editEventData.isAllDay,
-                                  onChanged: (value) {
-                                    ref
-                                        .read(editEventStateProvider.notifier)
-                                        .update((state) {
-                                      final updateIsAllDay = state.editEventData
-                                          .copyWith(isAllDay: value);
-                                      state = state.copyWith(
-                                          isUpdated: true,
-                                          editEventData: updateIsAllDay);
-                                      return state;
-                                    });
-                                  }))),
-                      Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 1),
-                          child: ScheduleConfigCell(
-                              leading: const Text("開始"),
-                              trailing: TextButton(
-                                style: TextButton.styleFrom(
-                                    foregroundColor: Colors.black),
-                                child: Text(
-
-                                    ///終日だったら日付のみ、そうでなければ日付と時間を表示
-                                    eventValue.editEventData.isAllDay
-                                        ? dateFormatForDate.format(
-                                            eventValue.editEventData.startTime)
-                                        : dateFormatForDateAndTime.format(
-                                            eventValue
-                                                .editEventData.startTime)),
-                                onPressed: () {
-                                  int initialMinute =
-                                      eventValue.editEventData.startTime.minute;
-                                  if (initialMinute % 15 != 0) {
-                                    initialMinute =
-                                        initialMinute - initialMinute % 15 + 15;
-                                  }
-                                  _showCupertinoPicker(
-                                    CupertinoDatePicker(
-                                      minuteInterval: 15,
-                                      initialDateTime: DateTime(
-                                          eventValue
-                                              .editEventData.startTime.year,
-                                          eventValue
-                                              .editEventData.startTime.month,
-                                          eventValue
-                                              .editEventData.startTime.day,
-                                          eventValue
-                                              .editEventData.startTime.hour,
-                                          initialMinute),
-                                      mode:
-
-                                          ///終日だったら日付のみ、そうでなければ日付と時間を表示
-                                          eventValue.editEventData.isAllDay
-                                              ? CupertinoDatePickerMode.date
-                                              : CupertinoDatePickerMode
-                                                  .dateAndTime,
-                                      use24hFormat: true,
-                                      onDateTimeChanged: (dateTime) {
-                                        ref
-                                            .read(
-                                                editEventStateProvider.notifier)
-                                            .update((state) {
-                                          final updateStartTime = state
-                                              .editEventData
-                                              .copyWith(startTime: dateTime);
-                                          state = state.copyWith(
-                                              editEventData: updateStartTime);
-                                          return state;
-                                        });
-                                      },
-                                    ),
-                                    arg,
-                                  );
-                                },
-                              ))),
-                      Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 1),
-                          child: ScheduleConfigCell(
-                              leading: const Text("終了"),
-                              trailing: TextButton(
-                                style: TextButton.styleFrom(
-                                    foregroundColor: Colors.black),
-                                child: Text(
-
-                                    ///終日だったら日付のみ、そうでなければ日付と時間を表示
-                                    eventValue.editEventData.isAllDay
-                                        ? dateFormatForDate.format(
-                                            eventValue.editEventData.endTime)
-                                        : dateFormatForDateAndTime.format(
-                                            eventValue.editEventData.endTime)),
-                                onPressed: () {
-                                  int initialMinute =
-                                      eventValue.editEventData.endTime.minute;
-                                  if (initialMinute % 15 != 0) {
-                                    initialMinute =
-                                        initialMinute - initialMinute % 15 + 15;
-                                  }
-                                  _showCupertinoPicker(
-                                    CupertinoDatePicker(
-                                      minuteInterval: 15,
-                                      initialDateTime: DateTime(
-                                          eventValue.editEventData.endTime.year,
-                                          eventValue
-                                              .editEventData.endTime.month,
-                                          eventValue.editEventData.endTime.day,
-                                          eventValue.editEventData.endTime.hour,
-                                          initialMinute),
-                                      mode:
-
-                                          ///終日だったら日付のみ、そうでなければ日付と時間を表示
-                                          eventValue.editEventData.isAllDay
-                                              ? CupertinoDatePickerMode.date
-                                              : CupertinoDatePickerMode
-                                                  .dateAndTime,
-                                      use24hFormat: true,
-                                      onDateTimeChanged: (dateTime) {
-                                        ref
-                                            .read(
-                                                editEventStateProvider.notifier)
-                                            .update((state) {
-                                          final updateEndTime = state
-                                              .editEventData
-                                              .copyWith(endTime: dateTime);
-                                          state = state.copyWith(
-                                              editEventData: updateEndTime);
-                                          return state;
-                                        });
-                                      },
-                                    ),
-                                    arg,
-                                  );
-                                },
-                              ))),
-                      ScheduleTextField(
-                          initialValue: eventValue.editEventData.comment,
-                          hintText: "コメントを入力してください",
-                          onChanged: (text) {
-                            ref
-                                .read(editEventStateProvider.notifier)
-                                .update((state) {
-                              final updateComment =
-                                  state.editEventData.copyWith(comment: text);
+                              final updateIsAllDay =
+                                  state.editEventData.copyWith(isAllDay: value);
                               state = state.copyWith(
                                   isUpdated: true,
-                                  editEventData: updateComment);
+                                  editEventData: updateIsAllDay);
                               return state;
                             });
-                          },
-                          maxLine: null),
-                      Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Container(
-                          height: 50,
-                          color: Colors.white,
-                          child: Center(
-                            child: TextButton(
-                              child: const Text(
-                                "この予定を削除",
-                                style: TextStyle(
-                                  color: Colors.red,
-                                ),
-                              ),
-                              onPressed: () async {
-                                final result = await showOkCancelAlertDialog(
-                                  context: (context),
-                                  title: "予定の削除",
-                                  message: "本当にこの日の予定を削除しますか？",
-                                  okLabel: "削除",
-                                  cancelLabel: "キャンセル",
-                                );
-                                if (result == OkCancelResult.ok) {
-                                  ///指定されているデータの削除
-                                  ref
-                                      .read(eventRepositoryProvider)
-                                      .deleteEvent(eventValue.editEventData);
+                          })),
+                  startTimeConfigCell: ScheduleConfigCell(
+                      leading: const Text("開始"),
+                      trailing: TextButton(
+                        style:
+                            TextButton.styleFrom(foregroundColor: Colors.black),
+                        child: Text(
 
-                                  ///データの更新
-                                  await ref
-                                      .read(eventStateProvider.notifier)
-                                      .fetchEventDataMap();
-                                  Navigator.popUntil(
-                                      context, ModalRoute.withName("/"));
-                                }
+                            ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                            eventValue.editEventData.isAllDay
+                                ? dateFormatForDate
+                                    .format(eventValue.editEventData.startTime)
+                                : dateFormatForDateAndTime.format(
+                                    eventValue.editEventData.startTime)),
+                        onPressed: () {
+                          int initialMinute =
+                              eventValue.editEventData.startTime.minute;
+                          if (initialMinute % 15 != 0) {
+                            initialMinute =
+                                initialMinute - initialMinute % 15 + 15;
+                          }
+                          _showCupertinoPicker(
+                            CupertinoDatePicker(
+                              minuteInterval: 15,
+                              initialDateTime: DateTime(
+                                  eventValue.editEventData.startTime.year,
+                                  eventValue.editEventData.startTime.month,
+                                  eventValue.editEventData.startTime.day,
+                                  eventValue.editEventData.startTime.hour,
+                                  initialMinute),
+                              mode:
+
+                                  ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                                  eventValue.editEventData.isAllDay
+                                      ? CupertinoDatePickerMode.date
+                                      : CupertinoDatePickerMode.dateAndTime,
+                              use24hFormat: true,
+                              onDateTimeChanged: (dateTime) {
+                                ref
+                                    .read(editEventStateProvider.notifier)
+                                    .update((state) {
+                                  final updateStartTime = state.editEventData
+                                      .copyWith(startTime: dateTime);
+                                  state = state.copyWith(
+                                      editEventData: updateStartTime);
+                                  return state;
+                                });
                               },
                             ),
+                            arg,
+                          );
+                        },
+                      )),
+                  endTimeConfigCell: ScheduleConfigCell(
+                      leading: const Text("終了"),
+                      trailing: TextButton(
+                        style:
+                            TextButton.styleFrom(foregroundColor: Colors.black),
+                        child: Text(
+
+                            ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                            eventValue.editEventData.isAllDay
+                                ? dateFormatForDate
+                                    .format(eventValue.editEventData.endTime)
+                                : dateFormatForDateAndTime
+                                    .format(eventValue.editEventData.endTime)),
+                        onPressed: () {
+                          int initialMinute =
+                              eventValue.editEventData.endTime.minute;
+                          if (initialMinute % 15 != 0) {
+                            initialMinute =
+                                initialMinute - initialMinute % 15 + 15;
+                          }
+                          _showCupertinoPicker(
+                            CupertinoDatePicker(
+                              minuteInterval: 15,
+                              initialDateTime: DateTime(
+                                  eventValue.editEventData.endTime.year,
+                                  eventValue.editEventData.endTime.month,
+                                  eventValue.editEventData.endTime.day,
+                                  eventValue.editEventData.endTime.hour,
+                                  initialMinute),
+                              mode:
+
+                                  ///終日だったら日付のみ、そうでなければ日付と時間を表示
+                                  eventValue.editEventData.isAllDay
+                                      ? CupertinoDatePickerMode.date
+                                      : CupertinoDatePickerMode.dateAndTime,
+                              use24hFormat: true,
+                              onDateTimeChanged: (dateTime) {
+                                ref
+                                    .read(editEventStateProvider.notifier)
+                                    .update((state) {
+                                  final updateEndTime = state.editEventData
+                                      .copyWith(endTime: dateTime);
+                                  state = state.copyWith(
+                                      editEventData: updateEndTime);
+                                  return state;
+                                });
+                              },
+                            ),
+                            arg,
+                          );
+                        },
+                      )),
+                  commentTextField: ScheduleTextField(
+                      initialValue: eventValue.editEventData.comment,
+                      hintText: "コメントを入力してください",
+                      onChanged: (text) {
+                        ref
+                            .read(editEventStateProvider.notifier)
+                            .update((state) {
+                          final updateComment =
+                              state.editEventData.copyWith(comment: text);
+                          state = state.copyWith(
+                              isUpdated: true, editEventData: updateComment);
+                          return state;
+                        });
+                      },
+                      maxLine: null),
+                  removeContainer: Container(
+                    height: 50,
+                    color: Colors.white,
+                    child: Center(
+                      child: TextButton(
+                        child: const Text(
+                          "この予定を削除",
+                          style: TextStyle(
+                            color: Colors.red,
                           ),
                         ),
+                        onPressed: () async {
+                          final result = await showOkCancelAlertDialog(
+                            context: (context),
+                            title: "予定の削除",
+                            message: "本当にこの日の予定を削除しますか？",
+                            okLabel: "削除",
+                            cancelLabel: "キャンセル",
+                          );
+                          if (result == OkCancelResult.ok) {
+                            ///指定されているデータの削除
+                            ref
+                                .read(eventRepositoryProvider)
+                                .deleteEvent(eventValue.editEventData);
+
+                            ///データの更新
+                            await ref
+                                .read(eventStateProvider.notifier)
+                                .fetchEventDataMap();
+                            Navigator.popUntil(
+                                context, ModalRoute.withName("/"));
+                          }
+                        },
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
