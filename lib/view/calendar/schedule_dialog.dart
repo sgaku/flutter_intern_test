@@ -1,3 +1,4 @@
+import 'package:calendar_sample/model/event_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -121,7 +122,8 @@ class ScheduleDialogState extends ConsumerState<ScheduleDialog> {
                               children: List.generate(
                                 selectedEvents.length,
                                 (index) {
-                                  final currentEvent = selectedEvents[index];
+                               final sortedSelectedEvents =  _getSortedList(selectedEvents);
+                                  final currentEvent = sortedSelectedEvents[index];
                                   return Column(
                                     children: [
                                       const Divider(
@@ -230,5 +232,23 @@ class ScheduleDialogState extends ConsumerState<ScheduleDialog> {
           disY * 12;
     }
     return 0;
+  }
+
+  List<EventData> _getSortedList(List<EventData> selectedEvents) {
+    List<EventData> allDayEvent = [];
+    List<EventData> oneDayEvent = [];
+    for (int i = 0; i < selectedEvents.length; i++) {
+      if (selectedEvents[i].isAllDay) {
+        allDayEvent.add(selectedEvents[i]);
+      } else {
+        oneDayEvent.add(selectedEvents[i]);
+      }
+    }
+    oneDayEvent.sort((a, b) => a.endTime.compareTo(b.endTime));
+    allDayEvent.sort((a, b) => a.endTime.compareTo(b.endTime));
+    selectedEvents.clear();
+    selectedEvents.addAll(oneDayEvent);
+    selectedEvents.addAll(allDayEvent);
+    return selectedEvents;
   }
 }
