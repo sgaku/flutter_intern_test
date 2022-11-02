@@ -1,3 +1,4 @@
+import 'package:calendar_sample/common/constraints/app_color.dart';
 import 'package:flutter/material.dart';
 
 class ScheduleAppBar extends StatelessWidget with PreferredSizeWidget {
@@ -38,7 +39,7 @@ class ScheduleAppBar extends StatelessWidget with PreferredSizeWidget {
               foregroundColor: MaterialStateProperty.resolveWith<Color>(
                 (Set<MaterialState> states) {
                   if (states.contains(MaterialState.disabled)) {
-                    return const Color(0xFFAEAEAE);
+                    return AppColor.outsideColor;
                   }
                   return Colors.black;
                 },

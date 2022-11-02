@@ -6,6 +6,8 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../common/constraints/app_color.dart';
+import '../../common/constraints/app_text.dart';
 import '../../common/text_color.dart';
 import '../event_state_notifier.dart';
 
@@ -43,7 +45,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
     final selectedDayValue = ref.watch(selectedDayProvider);
     final focusedDayValue = ref.watch(focusedDayProvider);
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 240, 238, 237),
+      backgroundColor: AppColor.backGroundColor,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: AppBar(
@@ -160,8 +162,8 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                       child: Text(
                         day.day.toString(),
                         style: const TextStyle(
-                          color: Color(0xFFAEAEAE),
-                          fontSize: 13,
+                          color: AppColor.outsideColor,
+                          fontSize: AppText.calendarBuilderFontSize,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -175,7 +177,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                       child: Text(
                         day.day.toString(),
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: AppText.calendarBuilderFontSize,
                           fontWeight: FontWeight.w500,
                           color: textColor(day),
                         ),
@@ -191,7 +193,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                       child: Text(
                         day.day.toString(),
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: AppText.calendarBuilderFontSize,
                           fontWeight: FontWeight.w500,
                           color: _selectedDayColor(day, focusedDay),
                         ),
@@ -210,7 +212,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                       child: Text(
                         day.day.toString(),
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: AppText.calendarBuilderFontSize,
                           fontWeight: FontWeight.w500,
                           color: Colors.white,
                         ),
@@ -220,13 +222,13 @@ class CalendarViewState extends ConsumerState<CalendarView> {
                 ),
                 daysOfWeekStyle: const DaysOfWeekStyle(
                     decoration: BoxDecoration(
-                      color: Color.fromARGB(255, 240, 238, 237),
+                      color: AppColor.backGroundColor,
                     ),
                     weekdayStyle: TextStyle(
-                      fontSize: 7,
+                      fontSize: AppText.calendarWeekFontSize,
                     ),
                     weekendStyle: TextStyle(
-                      fontSize: 7,
+                      fontSize: AppText.calendarWeekFontSize,
                     )),
                 calendarStyle: const CalendarStyle(
                     markersMaxCount: 1,
@@ -254,7 +256,7 @@ class CalendarViewState extends ConsumerState<CalendarView> {
       return Colors.white;
     }
     if (day.month != focusedDay.month) {
-      return const Color(0xFFAEAEAE);
+      return AppColor.outsideColor;
     }
 
     if (day.weekday == DateTime.sunday) {

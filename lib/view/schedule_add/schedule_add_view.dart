@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import '../../common/constraints/app_color.dart';
 import '../../common/schedule_app_bar.dart';
 import '../../common/schedule_body.dart';
 import '../../common/schedule_config_cell.dart';
@@ -57,7 +58,7 @@ class AddScheduleState extends ConsumerState<AddScheduleView> {
         onTap: myFocusNode.requestFocus,
         child: Scaffold(
           resizeToAvoidBottomInset: false,
-          backgroundColor: const Color.fromARGB(255, 240, 238, 237),
+          backgroundColor: AppColor.backGroundColor,
           appBar: ScheduleAppBar(
             title: const Text('予定の追加'),
             onPressedIcon: () {
