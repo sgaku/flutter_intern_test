@@ -8,7 +8,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../common/constraints/app_color.dart';
 import '../../common/constraints/app_text.dart';
-import '../../common/text_color.dart';
+import '../../common/utils/text_color.dart';
 import '../event_state_notifier.dart';
 
 final focusedDayProvider = StateProvider<DateTime>((ref) => DateTime.now());

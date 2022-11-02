@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../common/text_color.dart';
+import '../../common/utils/text_color.dart';
 import '../event_state_notifier.dart';
 import 'calendar_view.dart';
 

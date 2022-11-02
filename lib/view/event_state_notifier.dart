@@ -1,5 +1,5 @@
 import 'package:calendar_sample/model/event_data.dart';
-import 'package:calendar_sample/repository/event_repository.dart';
+import 'package:calendar_sample/view/schedule_edit/event_repository_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../model/event_state.dart';

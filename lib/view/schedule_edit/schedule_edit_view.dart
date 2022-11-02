@@ -1,6 +1,5 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:calendar_sample/common/schedule_text_field.dart';
-import 'package:calendar_sample/repository/event_repository.dart';
+import 'package:calendar_sample/common/component/schedule_text_field.dart';
 import 'package:calendar_sample/view/schedule_edit/edit_event_state_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,11 +7,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../common/constraints/app_color.dart';
-import '../../common/schedule_app_bar.dart';
-import '../../common/schedule_body.dart';
-import '../../common/schedule_config_cell.dart';
+import '../../common/component/schedule_app_bar.dart';
+import '../../common/component/schedule_body.dart';
+import '../../common/component/schedule_config_cell.dart';
 import '../../model/event_data.dart';
 import 'package:calendar_sample/view/event_state_notifier.dart';
+
+import 'event_repository_provider.dart';
 
 class EditScheduleView extends ConsumerStatefulWidget {
   const EditScheduleView({super.key});

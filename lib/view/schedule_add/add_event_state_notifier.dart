@@ -1,8 +1,8 @@
 import 'package:calendar_sample/model/event_data.dart';
-import 'package:calendar_sample/repository/event_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../model/add_event_data_state.dart';
+import '../schedule_edit/event_repository_provider.dart';
 
 final addEventStateProvider =
     StateNotifierProvider.autoDispose<AddEventStateNotifier, AddEventDataState>(

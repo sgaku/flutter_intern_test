@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../model/event_data.dart';
 
-final eventRepositoryProvider = Provider((ref) => EventRepository(ref));
 
 class EventRepository {
   EventRepository(Ref ref) {
